@@ -293,7 +293,7 @@ dependencies = [
 
 [[package]]
 name = "gaebboss-cli"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "assert_cmd",
  "clap",
@@ -305,7 +305,7 @@ dependencies = [
 
 [[package]]
 name = "gaebboss-core"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "criterion",
  "gaebboss-testkit",
@@ -316,7 +316,7 @@ dependencies = [
 
 [[package]]
 name = "gaebboss-py"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "gaebboss-core",
  "pyo3",
@@ -325,7 +325,7 @@ dependencies = [
 
 [[package]]
 name = "gaebboss-testkit"
-version = "0.1.1"
+version = "0.1.2"
 
 [[package]]
 name = "getrandom"
@@ -825,7 +825,7 @@ dependencies = [
 
 [[package]]
 name = "xtask"
-version = "0.1.1"
+version = "0.1.2"
 dependencies = [
  "gaebboss-core",
  "roxmltree",
