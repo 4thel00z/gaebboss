@@ -14,6 +14,19 @@ use crate::tape::Tape;
 use crate::version::{Phase, Route, Version, detect};
 use crate::warning::Warning;
 
+/// Resolves spans while the typed tree is borrowed mutably.
+#[derive(Clone, Copy)]
+pub struct Resolver<'a> {
+    bytes: &'a [u8],
+    decoded: &'a [u8],
+}
+
+impl Resolver<'_> {
+    pub fn str(&self, span: Span) -> &str {
+        std::str::from_utf8(span.resolve(self.bytes, self.decoded)).unwrap_or("")
+    }
+}
+
 pub struct Document {
     bytes: Vec<u8>,
     tape: Tape,
@@ -74,6 +87,22 @@ impl Document {
 
     pub fn tape(&self) -> &Tape {
         &self.tape
+    }
+
+    /// The typed tree for editing next to a resolver for its spans.
+    pub fn edit(&mut self) -> (&mut GAEB, Resolver<'_>) {
+        (
+            &mut self.gaeb,
+            Resolver {
+                bytes: &self.bytes,
+                decoded: &self.tape.decoded,
+            },
+        )
+    }
+
+    /// Re-labels the document as another phase, for a tender turned bid.
+    pub fn set_phase(&mut self, phase: Phase) {
+        self.route.phase = Some(phase);
     }
 
     pub fn bytes(&self) -> &[u8] {

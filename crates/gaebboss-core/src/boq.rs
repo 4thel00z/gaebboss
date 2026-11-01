@@ -76,18 +76,9 @@ impl ItemRef<'_> {
     }
 
     /// Whether the item's total belongs in the sums (Fachdokumentation
-    /// 4.5.2, 4.5.3): alternatives, provisional items without total,
-    /// not-applicable and not-offered items stay out.
+    /// 4.5.2, 4.5.3).
     pub fn counts_towards_total(&self) -> bool {
-        if self.item.not_offered == Some(true) {
-            return false;
-        }
-        !matches!(
-            self.kind(),
-            ItemKind::Alternative { .. }
-                | ItemKind::ProvisionalWithoutTotal
-                | ItemKind::NotApplicable
-        )
+        counts_towards_total(self.item)
     }
 
     pub fn not_offered(&self) -> bool {
@@ -141,6 +132,19 @@ impl ItemRef<'_> {
             .map(|n| complements(self.doc, n))
             .unwrap_or_default()
     }
+}
+
+/// Whether an item's total belongs in the sums: alternatives, provisional
+/// items without total, not-applicable and not-offered items stay out,
+/// whatever else they are (Fachdokumentation 4.5.2, 4.5.3).
+pub fn counts_towards_total(item: &Item) -> bool {
+    if item.not_offered == Some(true) || item.not_appl == Some(true) {
+        return false;
+    }
+    if item.provis == Some(Provis::WithoutTotal) {
+        return false;
+    }
+    !(item.aln_group_no.is_some() && item.aln_ser_no.is_some_and(|serial| serial != 0))
 }
 
 fn detail_node(item: &Item) -> Option<crate::tape::NodeId> {
@@ -560,6 +564,18 @@ mod tests {
         );
         assert_eq!(kinds[5], (ItemKind::Base { group: 12 }, true));
         assert_eq!(kinds[6], (ItemKind::NotApplicable, false));
+    }
+
+    #[test]
+    fn a_base_item_that_is_provisional_without_total_does_not_count() {
+        let doc = tender(&item(
+            "bb",
+            "10",
+            "<ALNGroupNo>3</ALNGroupNo><ALNSerNo>0</ALNSerNo><Provis>WithoutTotal</Provis>",
+        ));
+        let items: Vec<ItemRef<'_>> = doc.items().collect();
+        assert_eq!(items[0].kind(), ItemKind::Base { group: 3 });
+        assert!(!items[0].counts_towards_total());
     }
 
     #[test]

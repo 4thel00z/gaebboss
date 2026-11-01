@@ -1,6 +1,7 @@
 //! GAEB DA XML in pure Rust: tokenizer, generated typed model, writers,
 //! bill-of-quantities navigation and bid construction.
 
+pub mod bid;
 pub mod boq;
 pub mod bytes;
 pub mod decimal;
