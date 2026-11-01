@@ -319,10 +319,8 @@ impl GaebBuilder {
         if let Some(qty) = &i.qty {
             let _ = write!(out, "<Qty>{qty}</Qty>");
         }
-        if !bid {
-            if let Some(unit) = &i.unit {
-                let _ = write!(out, "<QU>{}</QU>", escape(unit));
-            }
+        if !bid && let Some(unit) = &i.unit {
+            let _ = write!(out, "<QU>{}</QU>", escape(unit));
         }
         if let Some(up) = &i.up {
             let _ = write!(out, "<UP>{up}</UP>");

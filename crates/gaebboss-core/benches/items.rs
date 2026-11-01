@@ -17,7 +17,7 @@ fn bench(c: &mut Criterion) {
     group.bench_function("oz-and-kind", |b| {
         b.iter(|| {
             doc.items()
-                .map(|i| i.oz.dotted().len() + i.kind() as usize)
+                .map(|i| i.oz.dotted().len() + usize::from(i.counts_towards_total()))
                 .sum::<usize>()
         })
     });
