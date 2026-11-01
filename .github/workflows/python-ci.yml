@@ -1,13 +1,39 @@
-name: python
+name: python-ci
+
 on:
   push:
     branches: [main, master]
+    paths:
+      - "crates/**"
+      - "python/**"
+      - "tests/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "pyproject.toml"
+      - ".github/workflows/python-ci.yml"
   pull_request:
+    paths:
+      - "crates/**"
+      - "python/**"
+      - "tests/**"
+      - "Cargo.toml"
+      - "Cargo.lock"
+      - "pyproject.toml"
+      - ".github/workflows/python-ci.yml"
+  workflow_dispatch:
+
+env:
+  CARGO_TERM_COLOR: always
+
 jobs:
-  test:
-    runs-on: ubuntu-latest
+  pytest:
+    name: pytest (${{ matrix.runner }})
+    runs-on: ${{ matrix.runner }}
+    strategy:
+      matrix:
+        runner: [ubuntu-latest, macos-latest]
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v7
       - uses: dtolnay/rust-toolchain@stable
       - uses: Swatinem/rust-cache@v2
       - uses: astral-sh/setup-uv@v5
@@ -15,3 +41,55 @@ jobs:
       - run: uv pip install --python .venv/bin/python maturin pytest
       - run: VIRTUAL_ENV=$PWD/.venv .venv/bin/maturin develop --uv --release
       - run: .venv/bin/python -m pytest tests/python -q
+
+  build:
+    name: wheel (${{ matrix.platform.runner }}, ${{ matrix.platform.target }})
+    runs-on: ${{ matrix.platform.runner }}
+    strategy:
+      matrix:
+        platform:
+          - runner: ubuntu-latest
+            target: x86_64
+          - runner: macos-latest
+            target: aarch64
+    steps:
+      - uses: actions/checkout@v7
+      - uses: actions/setup-python@v7
+        with:
+          python-version: "3.12"
+      - uses: PyO3/maturin-action@v1
+        with:
+          target: ${{ matrix.platform.target }}
+          args: --release --out dist
+          manylinux: auto
+          sccache: true
+      - name: Import smoke test
+        shell: bash
+        run: |
+          python -m venv /tmp/venv
+          /tmp/venv/bin/pip install dist/*.whl
+          /tmp/venv/bin/python - <<'PY'
+          import gaebboss
+          doc = gaebboss.Document("tests/fixtures/official/3.3/bvbs_bauausfuehrung.x83")
+          assert doc.phase == "X83", doc.phase
+          items = doc.items()
+          assert items, "no items"
+          assert all(item.oz for item in items)
+          bid = gaebboss.Bid.from_tender(doc, {"name1": "Bau GmbH", "street": "Weg 1", "pcode": "12345", "city": "Berlin"})
+          for item in items:
+              bid.price(item.id, "1.00")
+          x84 = bid.finish()
+          assert x84.phase == "X84"
+          assert x84.write()[:5] == b"<?xml"
+          try:
+              gaebboss.Document(data=b"not gaeb")
+          except gaebboss.GaebError:
+              pass
+          else:
+              raise SystemExit("expected GaebError on garbage input")
+          print("ok", gaebboss.__version__)
+          PY
+      - uses: actions/upload-artifact@v7
+        with:
+          name: ci-wheels-${{ runner.os }}-${{ matrix.platform.target }}
+          path: dist
