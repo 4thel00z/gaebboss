@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.1.1](https://github.com/4thel00z/gaebboss/compare/v0.1.0...v0.1.1) (2026-11-01)
+
+
+### Performance Improvements
+
+* **py:** release the GIL for item walks, validation, write reports and bids ([343c96f](https://github.com/4thel00z/gaebboss/commit/343c96fe1601fd19094db0b6e6f564f4eec863d1))
+
+
+### Documentation
+
+* gaebboss.dev, the book under /docs and a CLI screenshot ([f3bef8f](https://github.com/4thel00z/gaebboss/commit/f3bef8f0a6ad0b88e745e3e92ba30dd0acb4c120))
+
 ## 0.1.0 (2026-11-01)
 
 
