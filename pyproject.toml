@@ -4,7 +4,7 @@ build-backend = "maturin"
 
 [project]
 name = "gaebboss"
-version = "0.1.0"
+version = "0.1.1"
 description = "GAEB DA XML in pure Rust: read tenders and bids, validate, write schema-valid X84, price a tender"
 readme = "README.md"
 requires-python = ">=3.12"
