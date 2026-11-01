@@ -1,0 +1,29 @@
+[package]
+name = "gaebboss-cli"
+description = "Command line for GAEB DA XML: inspect, export, validate, round-trip and price tenders"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories = ["command-line-utilities"]
+
+[[bin]]
+name = "gaebboss"
+path = "src/main.rs"
+
+[dependencies]
+gaebboss-core = { workspace = true }
+clap = { version = "4", features = ["derive"] }
+serde_json = { workspace = true }
+
+[dev-dependencies]
+assert_cmd = "2"
+predicates = "3"
+tempfile = "3"
+
+[lints]
+workspace = true

@@ -8,6 +8,8 @@ pub mod decimal;
 pub mod document;
 pub mod error;
 pub mod generated;
+#[cfg(feature = "json")]
+pub mod json;
 pub mod lexer;
 pub mod name;
 pub mod oz;

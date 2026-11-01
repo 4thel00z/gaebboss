@@ -1,6 +1,7 @@
 [workspace]
 resolver = "3"
 members = [
+    "crates/gaebboss-cli",
     "crates/gaebboss-core",
     "crates/gaebboss-testkit",
     "xtask",
