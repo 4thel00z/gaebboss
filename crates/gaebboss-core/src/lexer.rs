@@ -55,6 +55,7 @@ impl<'a> Lexer<'a> {
         let input = self.input;
         while self.pos < input.len() {
             let Some(lt) = memchr(b'<', &input[self.pos..]) else {
+                self.text(self.pos, input.len());
                 self.pos = input.len();
                 break;
             };
