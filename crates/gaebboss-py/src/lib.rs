@@ -1,11 +1,13 @@
 //! Python bindings for gaebboss, compiled as `gaebboss._gaebboss` and
 //! re-exported by the `gaebboss` package. Documents are immutable and
-//! shareable across threads; parsing and writing run with the GIL released.
+//! shareable across threads; reading, item walks, validation, writing and
+//! bidding run with the GIL released.
 //! Every GAEB decimal crosses as `decimal.Decimal`, never as a float.
 
 use std::path::PathBuf;
 use std::sync::Arc;
 
+use pyo3::buffer::PyBuffer;
 use pyo3::create_exception;
 use pyo3::exceptions::PyException;
 use pyo3::prelude::*;
@@ -14,9 +16,10 @@ use pyo3::types::{PyDict, PyFloat};
 
 use gaebboss_core::Document;
 use gaebboss_core::bid::{Bid, Bidder};
-use gaebboss_core::boq::ItemKind;
+use gaebboss_core::boq::{ItemKind, ItemRef};
 use gaebboss_core::decimal::Decimal;
 use gaebboss_core::json::{kind_name, to_json};
+use gaebboss_core::oz::Breakdown;
 use gaebboss_core::validate::{Finding, validate, validate_against_tender};
 use gaebboss_core::version::{Phase, Version};
 use gaebboss_core::write::WriteOptions;
@@ -51,6 +54,16 @@ fn decimal_arg(value: &Bound<'_, PyAny>) -> PyResult<Decimal> {
     }
     let text = value.str()?.to_str()?.to_string();
     Decimal::parse(text.trim()).map_err(|e| gaeb_err(format!("{text:?}: {e}")))
+}
+
+/// The bytes of a buffer-like argument in one copy: `bytes`, `bytearray`,
+/// `memoryview` or any other buffer object. A plain sequence of ints is
+/// extracted element by element.
+fn byte_arg(data: &Bound<'_, PyAny>) -> PyResult<Vec<u8>> {
+    let Ok(buffer) = PyBuffer::<u8>::get(data) else {
+        return data.extract();
+    };
+    buffer.to_vec(data.py())
 }
 
 #[pyclass(frozen, name = "Warning", module = "gaebboss")]
@@ -111,6 +124,7 @@ struct PyBoq {
     total: Option<Py<PyAny>>,
 }
 
+#[derive(Clone)]
 #[pyclass(frozen, name = "Complement", module = "gaebboss")]
 struct PyComplement {
     #[pyo3(get)]
@@ -125,8 +139,15 @@ struct PyComplement {
     empty: bool,
     #[pyo3(get)]
     tail: String,
-    #[pyo3(get)]
-    number: Option<Py<PyAny>>,
+    number: Option<Decimal>,
+}
+
+#[pymethods]
+impl PyComplement {
+    #[getter]
+    fn number(&self, py: Python<'_>) -> PyResult<Option<Py<PyAny>>> {
+        decimal(py, self.number)
+    }
 }
 
 #[pyclass(frozen, name = "Item", module = "gaebboss")]
@@ -147,28 +168,99 @@ struct PyItem {
     long_text: String,
     #[pyo3(get)]
     long_text_markdown: String,
-    #[pyo3(get)]
-    quantity: Option<Py<PyAny>>,
+    quantity: Option<Decimal>,
     #[pyo3(get)]
     unit: Option<String>,
-    #[pyo3(get)]
-    unit_price: Option<Py<PyAny>>,
-    #[pyo3(get)]
-    total: Option<Py<PyAny>>,
-    #[pyo3(get)]
-    vat: Option<Py<PyAny>>,
+    unit_price: Option<Decimal>,
+    total: Option<Decimal>,
+    vat: Option<Decimal>,
     #[pyo3(get)]
     counts_towards_total: bool,
     #[pyo3(get)]
     not_offered: bool,
     #[pyo3(get)]
     category_ozs: Vec<String>,
-    #[pyo3(get)]
-    complements: Vec<Py<PyComplement>>,
+    complements: Vec<PyComplement>,
+}
+
+impl PyItem {
+    fn new(doc: &Document, breakdown: &Breakdown, i: &ItemRef<'_>) -> PyItem {
+        let item_kind = i.kind();
+        let (group, serial) = match item_kind {
+            ItemKind::Alternative { group, serial } => (Some(group), Some(serial)),
+            ItemKind::Base { group } => (Some(group), Some(0)),
+            _ => (None, None),
+        };
+        let complements = i
+            .complements()
+            .iter()
+            .map(|c| PyComplement {
+                mark: c.mark,
+                kind: format!("{:?}", c.kind),
+                label: c.label().to_string(),
+                value: c.value(),
+                empty: c.empty,
+                tail: c.tail.clone(),
+                number: c.number,
+            })
+            .collect();
+        let parts: Vec<&str> = i
+            .path
+            .iter()
+            .map(|c| c.rno_part.map(|s| doc.str(s)).unwrap_or(""))
+            .collect();
+        let category_ozs = (1..=parts.len())
+            .map(|depth| breakdown.category_oz(&parts[..depth]).dotted())
+            .collect();
+        PyItem {
+            id: i.id().to_string(),
+            oz: i.oz.dotted(),
+            kind: kind_name(item_kind).to_string(),
+            alternative_group: group,
+            alternative_serial: serial,
+            short_text: i.short_text(),
+            long_text: i.long_text(),
+            long_text_markdown: i.long_text_markdown(),
+            quantity: i.quantity(),
+            unit: i.unit().map(str::to_string),
+            unit_price: i.unit_price(),
+            total: i.total(),
+            vat: i.vat_percent(),
+            counts_towards_total: i.counts_towards_total(),
+            not_offered: i.not_offered(),
+            category_ozs,
+            complements,
+        }
+    }
 }
 
 #[pymethods]
 impl PyItem {
+    #[getter]
+    fn quantity(&self, py: Python<'_>) -> PyResult<Option<Py<PyAny>>> {
+        decimal(py, self.quantity)
+    }
+
+    #[getter]
+    fn unit_price(&self, py: Python<'_>) -> PyResult<Option<Py<PyAny>>> {
+        decimal(py, self.unit_price)
+    }
+
+    #[getter]
+    fn total(&self, py: Python<'_>) -> PyResult<Option<Py<PyAny>>> {
+        decimal(py, self.total)
+    }
+
+    #[getter]
+    fn vat(&self, py: Python<'_>) -> PyResult<Option<Py<PyAny>>> {
+        decimal(py, self.vat)
+    }
+
+    #[getter]
+    fn complements(&self) -> Vec<PyComplement> {
+        self.complements.clone()
+    }
+
     fn __repr__(&self) -> String {
         format!("Item({} {} {:?})", self.oz, self.kind, self.short_text)
     }
@@ -319,26 +411,29 @@ impl PyDocument {
     fn new(
         py: Python<'_>,
         path: Option<PathBuf>,
-        data: Option<Vec<u8>>,
+        data: Option<&Bound<'_, PyAny>>,
         name: Option<String>,
     ) -> PyResult<Self> {
-        let (bytes, file_name) = match (path, data) {
+        let doc = match (path, data) {
             (Some(path), None) => {
-                let bytes = std::fs::read(&path)
-                    .map_err(|e| gaeb_err(format!("{}: {e}", path.display())))?;
                 let file_name = name.or_else(|| {
                     path.file_name()
                         .and_then(|n| n.to_str())
                         .map(str::to_string)
                 });
-                (bytes, file_name)
+                py.detach(move || {
+                    let bytes = std::fs::read(&path)
+                        .map_err(|e| gaeb_err(format!("{}: {e}", path.display())))?;
+                    Document::parse_named(&bytes, file_name.as_deref()).map_err(gaeb_err)
+                })?
             }
-            (None, Some(data)) => (data, name),
+            (None, Some(data)) => {
+                let bytes = byte_arg(data)?;
+                py.detach(move || Document::parse_named(&bytes, name.as_deref()))
+                    .map_err(gaeb_err)?
+            }
             _ => return Err(gaeb_err("pass either a path or data=")),
         };
-        let doc = py
-            .detach(move || Document::parse_named(&bytes, file_name.as_deref()))
-            .map_err(gaeb_err)?;
         Ok(PyDocument {
             inner: Arc::new(doc),
         })
@@ -424,67 +519,14 @@ impl PyDocument {
                 )));
             }
         };
-        let doc = &self.inner;
-        let mut out = Vec::new();
-        for i in doc.items() {
-            if counting && !i.counts_towards_total() {
-                continue;
-            }
-            let item_kind = i.kind();
-            let (group, serial) = match item_kind {
-                ItemKind::Alternative { group, serial } => (Some(group), Some(serial)),
-                ItemKind::Base { group } => (Some(group), Some(0)),
-                _ => (None, None),
-            };
-            let complements = i
-                .complements()
-                .iter()
-                .map(|c| {
-                    Py::new(
-                        py,
-                        PyComplement {
-                            mark: c.mark,
-                            kind: format!("{:?}", c.kind),
-                            label: c.label().to_string(),
-                            value: c.value(),
-                            empty: c.empty,
-                            tail: c.tail.clone(),
-                            number: decimal(py, c.number)?,
-                        },
-                    )
-                })
-                .collect::<PyResult<Vec<_>>>()?;
-            let category_ozs = {
-                let breakdown = doc.breakdown();
-                let mut parts: Vec<&str> = Vec::new();
-                let mut ozs = Vec::new();
-                for c in &i.path {
-                    parts.push(c.rno_part.map(|s| doc.str(s)).unwrap_or(""));
-                    ozs.push(breakdown.category_oz(&parts).dotted());
-                }
-                ozs
-            };
-            out.push(PyItem {
-                id: i.id().to_string(),
-                oz: i.oz.dotted(),
-                kind: kind_name(item_kind).to_string(),
-                alternative_group: group,
-                alternative_serial: serial,
-                short_text: i.short_text(),
-                long_text: i.long_text(),
-                long_text_markdown: i.long_text_markdown(),
-                quantity: decimal(py, i.quantity())?,
-                unit: i.unit().map(str::to_string),
-                unit_price: decimal(py, i.unit_price())?,
-                total: decimal(py, i.total())?,
-                vat: decimal(py, i.vat_percent())?,
-                counts_towards_total: i.counts_towards_total(),
-                not_offered: i.not_offered(),
-                category_ozs,
-                complements,
-            });
-        }
-        Ok(out)
+        let doc = Arc::clone(&self.inner);
+        Ok(py.detach(move || {
+            let breakdown = doc.breakdown();
+            doc.items()
+                .filter(|i| !counting || i.counts_towards_total())
+                .map(|i| PyItem::new(&doc, &breakdown, &i))
+                .collect()
+        }))
     }
 
     fn categories(&self, py: Python<'_>) -> PyResult<Vec<PyCategory>> {
@@ -523,15 +565,19 @@ impl PyDocument {
             .map_err(gaeb_err)
     }
 
-    fn validate(&self) -> Vec<PyFinding> {
-        validate(&self.inner).into_iter().map(finding).collect()
+    fn validate(&self, py: Python<'_>) -> Vec<PyFinding> {
+        let doc = Arc::clone(&self.inner);
+        py.detach(move || validate(&doc).into_iter().map(finding).collect())
     }
 
-    fn validate_against(&self, tender: &PyDocument) -> Vec<PyFinding> {
-        validate_against_tender(&self.inner, &tender.inner)
-            .into_iter()
-            .map(finding)
-            .collect()
+    fn validate_against(&self, py: Python<'_>, tender: &PyDocument) -> Vec<PyFinding> {
+        let (doc, tender) = (Arc::clone(&self.inner), Arc::clone(&tender.inner));
+        py.detach(move || {
+            validate_against_tender(&doc, &tender)
+                .into_iter()
+                .map(finding)
+                .collect()
+        })
     }
 
     /// The document as GAEB DA XML bytes, in its own phase and version
@@ -560,7 +606,10 @@ impl PyDocument {
         strict: bool,
     ) -> PyResult<PyWriteReport> {
         let opts = self.options(phase, version, false, strict)?;
-        let (_, report) = self.inner.write_with_report(&opts).map_err(gaeb_err)?;
+        let doc = Arc::clone(&self.inner);
+        let (_, report) = py
+            .detach(move || doc.write_with_report(&opts))
+            .map_err(gaeb_err)?;
         Ok(PyWriteReport {
             dropped: report
                 .dropped
@@ -619,7 +668,11 @@ impl PyBid {
     /// Starts a bid from a tender; `bidder` holds name1, street, pcode,
     /// city and optionally name2, contact, email, bidder_no.
     #[staticmethod]
-    fn from_tender(tender: &PyDocument, bidder: &Bound<'_, PyDict>) -> PyResult<PyBid> {
+    fn from_tender(
+        py: Python<'_>,
+        tender: &PyDocument,
+        bidder: &Bound<'_, PyDict>,
+    ) -> PyResult<PyBid> {
         let field = |key: &str| -> PyResult<Option<String>> {
             bidder
                 .get_item(key)?
@@ -639,7 +692,10 @@ impl PyBid {
             email: field("email")?,
             bidder_no: field("bidder_no")?,
         };
-        let bid = Bid::from_tender(&tender.inner, bidder).map_err(gaeb_err)?;
+        let tender = Arc::clone(&tender.inner);
+        let bid = py
+            .detach(move || Bid::from_tender(&tender, bidder))
+            .map_err(gaeb_err)?;
         Ok(PyBid { inner: Some(bid) })
     }
 
@@ -695,12 +751,12 @@ impl PyBid {
 
     /// Checks every item is priced, computes all totals and returns the
     /// finished X84 document. The bid cannot be used afterwards.
-    fn finish(&mut self) -> PyResult<PyDocument> {
+    fn finish(&mut self, py: Python<'_>) -> PyResult<PyDocument> {
         let bid = self
             .inner
             .take()
             .ok_or_else(|| gaeb_err("this bid is finished"))?;
-        let doc = bid.finish().map_err(gaeb_err)?;
+        let doc = py.detach(move || bid.finish()).map_err(gaeb_err)?;
         Ok(PyDocument {
             inner: Arc::new(doc),
         })

@@ -5,7 +5,8 @@ pip install gaebboss
 ```
 
 `gaebboss.Document(path)` or `gaebboss.Document(data=bytes, name="x.X83")`
-parses with the GIL released. Everything it returns is a plain object:
+parses with the GIL released; `data` takes `bytes`, `bytearray`, `memoryview`
+or any other buffer and copies it once. Everything it returns is a plain object:
 `items()`, `categories()`, `markup_items()`, `boq`, `project`, `warnings`,
 `validate()`, `validate_against(tender)`, `to_json()`, `write(...)` and
 `write_report(...)`. Every GAEB number is a `decimal.Decimal` built from its
@@ -28,4 +29,8 @@ open("bid.X84", "wb").write(doc.write())
 ```
 
 Documents are immutable and can be shared between threads; parsing sixteen
-copies in a thread pool scales with cores.
+copies in a thread pool scales with cores. Reading a file, `items()`,
+`validate()`, `validate_against()`, `write()`, `write_report()`, `to_json()`,
+`Bid.from_tender()` and `Bid.finish()` all run with the GIL released, so
+other Python threads keep running meanwhile. Item decimals become
+`decimal.Decimal` when the attribute is read.

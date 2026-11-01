@@ -1,3 +1,4 @@
+from collections.abc import Buffer
 from decimal import Decimal
 from os import PathLike
 from typing import Literal
@@ -91,7 +92,7 @@ class WriteReport:
     missing: list[Missing]
 
 class Document:
-    def __init__(self, path: str | PathLike[str] | None = None, *, data: bytes | None = None, name: str | None = None) -> None: ...
+    def __init__(self, path: str | PathLike[str] | None = None, *, data: Buffer | None = None, name: str | None = None) -> None: ...
     @property
     def version(self) -> str: ...
     @property
