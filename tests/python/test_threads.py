@@ -82,18 +82,22 @@ def test_calls_release_the_gil(big_x83: pathlib.Path, name: str) -> None:
     assert busy >= idle // 2, f"{name}: {busy} ticks, {idle} when idle"
 
 
+def best_of_three(argument: object) -> float:
+    def once() -> float:
+        started = time.perf_counter()
+        gaebboss.Document(data=argument, name="big.X83")
+        return time.perf_counter() - started
+
+    return min(once() for _ in range(3))
+
+
 @pytest.mark.parametrize("wrap", [bytes, bytearray, memoryview])
 def test_buffer_arguments_copy_in_one_go(
     big_x83: pathlib.Path, wrap: Callable[[bytes], object]
 ) -> None:
     data = big_x83.read_bytes()
     argument = wrap(data)
-    gaebboss.Document(data=data, name="big.X83")
-    started = time.perf_counter()
     reference = gaebboss.Document(data=data, name="big.X83")
-    from_bytes = time.perf_counter() - started
-    started = time.perf_counter()
     doc = gaebboss.Document(data=argument, name="big.X83")
-    from_wrapped = time.perf_counter() - started
     assert len(doc.items()) == len(reference.items())
-    assert from_wrapped < 2 * from_bytes + 0.01
+    assert best_of_three(argument) < 2 * best_of_three(data) + 0.01
