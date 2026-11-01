@@ -14,6 +14,7 @@ pub mod read;
 pub mod span;
 pub mod tape;
 pub mod text;
+pub mod validate;
 pub mod version;
 pub mod warning;
 pub mod write;
