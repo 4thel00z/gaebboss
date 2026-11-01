@@ -19,7 +19,7 @@ struct Lexer<'a> {
     input: &'a [u8],
     tape: Tape,
     stack: Vec<Frame>,
-    scratch: Vec<Span>,
+    scratch: Vec<(Span, u32)>,
     pos: usize,
 }
 
@@ -142,8 +142,9 @@ impl<'a> Lexer<'a> {
             return;
         }
         let bytes = &self.input[span.start()..span.end()];
+        let offset = span.start() as u32;
         if literal || memchr(b'&', bytes).is_none() {
-            self.scratch.push(span);
+            self.scratch.push((span, offset));
             return;
         }
         let start = self.tape.decoded.len();
@@ -154,7 +155,7 @@ impl<'a> Lexer<'a> {
             &mut self.tape.warnings,
         );
         self.scratch
-            .push(Span::decoded(start, self.tape.decoded.len()));
+            .push((Span::decoded(start, self.tape.decoded.len()), offset));
     }
 
     fn start_tag(&mut self, lt: usize) -> usize {
@@ -363,12 +364,13 @@ impl<'a> Lexer<'a> {
         let has_children = self.tape.nodes[frame.node as usize].first_child != NONE;
         let pieces_start = self.tape.pieces.len();
         let mut total = 0usize;
-        for span in self.scratch.drain(frame.piece_start..) {
+        for (span, offset) in self.scratch.drain(frame.piece_start..) {
             if has_children && is_blank(span.resolve(self.input, &self.tape.decoded)) {
                 continue;
             }
             total += span.len();
             self.tape.pieces.push(span);
+            self.tape.piece_offsets.push(offset);
         }
         let count = self.tape.pieces.len() - pieces_start;
         let text = match count {

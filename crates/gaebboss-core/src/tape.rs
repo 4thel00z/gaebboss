@@ -51,6 +51,8 @@ pub struct Tape {
     pub nodes: Vec<Node>,
     pub attrs: Vec<Attr>,
     pub pieces: Vec<Span>,
+    /// Where each piece started in the input, parallel to `pieces`.
+    pub piece_offsets: Vec<u32>,
     pub decoded: Vec<u8>,
     pub root: NodeId,
     pub default_ns: Span,
@@ -59,6 +61,27 @@ pub struct Tape {
 }
 
 impl Tape {
+    /// The text pieces with the input offset each one started at, which
+    /// orders them against the node's child elements.
+    pub fn text_pieces_with_offsets(&self, id: NodeId) -> impl Iterator<Item = (Span, usize)> + '_ {
+        let (start, count) = self
+            .node(id)
+            .map_or((0, 0), |n| (n.pieces as usize, n.piece_count as usize));
+        let spans = self
+            .pieces
+            .get(start..start + count)
+            .unwrap_or(&[])
+            .iter()
+            .copied();
+        let offsets = self
+            .piece_offsets
+            .get(start..start + count)
+            .unwrap_or(&[])
+            .iter()
+            .map(|o| *o as usize);
+        spans.zip(offsets)
+    }
+
     /// The text behind a span; empty when the span is not valid UTF-8.
     pub fn str<'a>(&'a self, input: &'a [u8], span: Span) -> &'a str {
         std::str::from_utf8(span.resolve(input, &self.decoded)).unwrap_or("")

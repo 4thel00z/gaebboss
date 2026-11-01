@@ -11,6 +11,7 @@ pub mod name;
 pub mod read;
 pub mod span;
 pub mod tape;
+pub mod text;
 pub mod version;
 pub mod warning;
 

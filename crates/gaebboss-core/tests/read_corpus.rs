@@ -4,6 +4,7 @@
 use std::collections::BTreeMap;
 
 use gaebboss_core::Document;
+use gaebboss_core::warning::WarningCode;
 
 #[test]
 fn every_corpus_file_reads() {
@@ -44,25 +45,12 @@ fn every_corpus_file_reads() {
         bytes += std::fs::metadata(path)
             .map(|m| m.len() as usize)
             .unwrap_or(0);
-        for w in doc
-            .warnings
-            .iter()
-            .filter(|w| w.message.starts_with("<ComplBody>"))
-            .take(1)
-        {
-            let at = w.offset as usize;
-            let ctx = &doc.bytes()[at.saturating_sub(400)..(at + 120).min(doc.bytes().len())];
-            eprintln!(
-                "CONTEXT {}:\n{}",
-                path.display(),
-                String::from_utf8_lossy(ctx)
-            );
-        }
         for w in &doc.warnings {
             *histogram.entry(format!("{:?}", w.code)).or_default() += 1;
-            if w.code == gaebboss_core::warning::WarningCode::UnknownElement
-                || w.code == gaebboss_core::warning::WarningCode::Cardinality
-            {
+            if matches!(
+                w.code,
+                WarningCode::UnknownElement | WarningCode::Cardinality
+            ) {
                 let key = w
                     .message
                     .split(" in the schema")
