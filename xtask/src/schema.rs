@@ -490,7 +490,7 @@ fn fill_complex(node: roxmltree::Node, ty: &mut ComplexType) {
 
 fn attribute(node: roxmltree::Node) -> Attribute {
     Attribute {
-        name: node.attribute("name").unwrap_or_default().to_string(),
+        name: element_name(node),
         ty: node.attribute("type").unwrap_or("xs:string").to_string(),
         required: node.attribute("use") == Some("required"),
         default: node.attribute("default").map(str::to_string),
@@ -516,7 +516,7 @@ fn particles(node: roxmltree::Node) -> Vec<Particle> {
         let (min, max) = occurs(child);
         match child.tag_name().name() {
             "element" => out.push(Particle::Element {
-                name: child.attribute("name").unwrap_or_default().to_string(),
+                name: element_name(child),
                 ty: element_type(child),
                 min,
                 max,
@@ -535,6 +535,15 @@ fn particles(node: roxmltree::Node) -> Vec<Particle> {
         }
     }
     out
+}
+
+/// A declared name, or the local part of a `ref` such as `ds:Signature`.
+fn element_name(node: roxmltree::Node) -> String {
+    if let Some(name) = node.attribute("name") {
+        return name.to_string();
+    }
+    let reference = node.attribute("ref").unwrap_or_default();
+    reference.rsplit(':').next().unwrap_or_default().to_string()
 }
 
 fn element_type(node: roxmltree::Node) -> TypeRef {
