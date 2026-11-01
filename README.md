@@ -1,4 +1,6 @@
-<h1 align="center">gaebboss</h1>
+<p align="center">
+  <img src="https://raw.githubusercontent.com/4thel00z/gaebboss/main/assets/logo.svg" width="520" alt="gaebboss">
+</p>
 
 <p align="center">
   <strong>GAEB DA XML in pure Rust: read German construction tenders, bids and orders, validate them, write schema-valid X83, X84 and X86, and turn a tender into a priced bid. One core, a CLI, and pythonic bindings.</strong>
