@@ -494,6 +494,8 @@ fn find_markup_in<'a>(
 }
 
 /// Sums a body per 4.6.17 and sets `Totals` on every category below it.
+/// Items that do not count carry no total at all ("Nur Einh.-Preis"),
+/// because an X84 no longer says why they would not.
 fn sum_body(body: &mut BoQBody) -> Result<Decimal, BidError> {
     let mut sum = Decimal::new(0, 2);
     for ctgy in &mut body.boq_ctgy {
@@ -502,11 +504,12 @@ fn sum_body(body: &mut BoQBody) -> Result<Decimal, BidError> {
     }
     if let Some(list) = body.itemlist.as_mut() {
         for item in &mut list.item {
+            if !counts_towards_total(item) {
+                item.it = None;
+                continue;
+            }
             if let (Some(qty), Some(up)) = (item.qty, item.up) {
                 item.it = item_total(qty, up);
-            }
-            if !counts_towards_total(item) {
-                continue;
             }
             let Some(total) = item.it else { continue };
             sum = sum.checked_add(total).ok_or(BidError::Overflow)?;
