@@ -1,0 +1,21 @@
+[package]
+name = "gaebboss-py"
+description = "Python bindings for gaebboss (extension module gaebboss._gaebboss)"
+publish = false
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+
+[lib]
+name = "_gaebboss"
+crate-type = ["cdylib"]
+
+[dependencies]
+gaebboss-core = { workspace = true }
+pyo3 = { version = "0.30", features = ["abi3-py312"] }
+serde_json = { workspace = true }
+
+[lints]
+workspace = true

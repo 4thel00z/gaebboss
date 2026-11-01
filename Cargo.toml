@@ -3,6 +3,7 @@ resolver = "3"
 members = [
     "crates/gaebboss-cli",
     "crates/gaebboss-core",
+    "crates/gaebboss-py",
     "crates/gaebboss-testkit",
     "xtask",
 ]

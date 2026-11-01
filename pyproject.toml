@@ -1,0 +1,43 @@
+[build-system]
+requires = ["maturin>=1.7,<2.0"]
+build-backend = "maturin"
+
+[project]
+name = "gaebboss"
+version = "0.1.0"
+description = "GAEB DA XML in pure Rust: read tenders and bids, validate, write schema-valid X84, price a tender"
+readme = "README.md"
+requires-python = ">=3.12"
+license = "MIT OR Apache-2.0"
+license-files = ["LICENSE-MIT", "LICENSE-APACHE"]
+authors = [{ name = "4thel00z" }]
+keywords = ["gaeb", "construction", "bill-of-quantities", "ava", "leistungsverzeichnis", "x83", "x84", "rust"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Intended Audience :: Developers",
+    "Programming Language :: Rust",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: Implementation :: CPython",
+    "Topic :: Office/Business",
+    "Topic :: Text Processing :: Markup :: XML",
+]
+
+[project.urls]
+Homepage = "https://gaebboss.dev"
+Repository = "https://github.com/4thel00z/gaebboss"
+
+[tool.maturin]
+python-source = "python"
+module-name = "gaebboss._gaebboss"
+manifest-path = "crates/gaebboss-py/Cargo.toml"
+features = ["pyo3/extension-module"]
+include = [
+    { path = "LICENSE-MIT", format = "sdist" },
+    { path = "LICENSE-APACHE", format = "sdist" },
+]
+
+[dependency-groups]
+dev = ["pytest>=8", "lxml>=5", "pygaeb>=1.20"]
+
+[tool.pytest.ini_options]
+testpaths = ["tests/python"]
