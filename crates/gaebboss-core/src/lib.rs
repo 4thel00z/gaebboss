@@ -2,6 +2,7 @@
 //! bill-of-quantities navigation and bid construction.
 
 pub mod bytes;
+pub mod decimal;
 pub mod error;
 pub mod generated;
 pub mod lexer;
