@@ -1,0 +1,13 @@
+[package]
+name = "gaebboss-testkit"
+description = "Fixture builder and corpus discovery for gaebboss tests"
+publish = false
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+
+[dependencies]
+
+[lints]
+workspace = true

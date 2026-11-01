@@ -1,0 +1,22 @@
+[package]
+name = "gaebboss-core"
+description = "GAEB DA XML reader, writer and bill-of-quantities model in pure Rust"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+keywords.workspace = true
+categories = ["parser-implementations", "encoding"]
+
+[dependencies]
+memchr = { workspace = true }
+thiserror = { workspace = true }
+
+[dev-dependencies]
+gaebboss-testkit = { workspace = true }
+
+[lints]
+workspace = true

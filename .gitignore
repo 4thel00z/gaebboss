@@ -1,0 +1,10 @@
+/target
+.venv/
+__pycache__/
+.pytest_cache/
+*.so
+dist/
+docs/book/
+graphify-out/
+.superpowers/
+benchmarks/results.json
