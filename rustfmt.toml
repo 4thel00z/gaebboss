@@ -1,1 +1,2 @@
 edition = "2024"
+format_generated_files = false

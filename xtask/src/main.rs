@@ -2,6 +2,7 @@
 //! sources of gaebboss-core from the vendored GAEB XSDs.
 
 mod emit_names;
+mod emit_phase;
 #[allow(dead_code)]
 mod schema;
 
@@ -56,10 +57,18 @@ fn generate(check: bool) -> Result<(), String> {
     let schemas = load_schemas(&root)?;
     let generated = root.join("crates/gaebboss-core/src/generated");
     let names = emit_names::collect(&schemas);
-    let outputs = [(
-        generated.join("names.rs"),
-        emit_names::emit(&names, SOURCES),
-    )];
+    let latest = schemas.last().ok_or("no schemas")?;
+    let phases = emit_phase::codes(latest);
+    let outputs = [
+        (
+            generated.join("names.rs"),
+            emit_names::emit(&names, SOURCES),
+        ),
+        (
+            generated.join("phase.rs"),
+            emit_phase::emit(&phases, "standard/3.3 (tgDP)"),
+        ),
+    ];
     let mut stale = Vec::new();
     for (path, content) in &outputs {
         let current = std::fs::read_to_string(path).unwrap_or_default();

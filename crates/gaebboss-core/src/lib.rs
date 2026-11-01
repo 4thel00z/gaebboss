@@ -9,4 +9,5 @@ pub mod lexer;
 pub mod name;
 pub mod span;
 pub mod tape;
+pub mod version;
 pub mod warning;
