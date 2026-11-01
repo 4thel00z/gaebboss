@@ -25,7 +25,9 @@ def gaebboss_parse(path: pathlib.Path) -> int:
 def gaebboss_items(path: pathlib.Path) -> int:
     import gaebboss
 
-    return sum(len(i.oz) + len(i.short_text) for i in gaebboss.Document(path).items())
+    return sum(
+        len(i.oz) + len(i.short_text) + bool(i.quantity) for i in gaebboss.Document(path).items()
+    )
 
 
 def pygaeb_parse(path: pathlib.Path) -> int:
@@ -38,7 +40,9 @@ def pygaeb_items(path: pathlib.Path) -> int:
     from pygaeb import GAEBParser
 
     doc = GAEBParser.parse(str(path))
-    return sum(len(i.full_oz or "") + len(i.short_text or "") for i in doc.iter_items())
+    return sum(
+        len(i.full_oz or "") + len(i.short_text or "") + bool(i.qty) for i in doc.iter_items()
+    )
 
 
 def lxml_parse(path: pathlib.Path) -> int:
@@ -55,6 +59,7 @@ def lxml_items(path: pathlib.Path) -> int:
     total = 0
     for item in root.iter(f"{{{ns}}}Item"):
         total += len(item.get("RNoPart", ""))
+        total += len(item.findtext(f"{{{ns}}}Qty") or "")
         for span in item.iter(f"{{{ns}}}span"):
             total += len(span.text or "")
     return total

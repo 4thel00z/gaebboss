@@ -7,10 +7,10 @@ is the directory's bytes over the summed best times.
 
 ```bash
 make develop                                   # gaebboss into .venv
-uv pip install --python .venv/bin/python pygaeb lxml matplotlib
-.venv/bin/python -I benchmarks/bench.py ~/gaeb-files --repeat 3 --limit 40
+make bench-py GAEBBOSS_CORPUS=~/gaeb-files     # bench.py --repeat 3 --limit 40, then plot.py
 ```
 
-`results.json` is written next to the script; `results.png` in this
-directory was rendered from it on 2026-11-01 (aarch64 workstation,
-Cortex-X925, single-threaded, 40 third-party files, 22 MB).
+`bench.py` writes `results.json` next to itself and `plot.py` renders
+`results.png` from it. The committed chart is from 2026-11-01 (gaebboss
+after 0.1.0, pygaeb 1.21.0, lxml 6.1.3; aarch64 workstation, Cortex-X925,
+single-threaded, 40 third-party files, 22 MB).

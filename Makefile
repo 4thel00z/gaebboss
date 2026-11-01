@@ -64,9 +64,10 @@ test-py: ## Run the Python tests against the installed extension
 	.venv/bin/python -m pytest tests/python -q
 
 .PHONY: bench-py
-bench-py: ## Time gaebboss against pygaeb and lxml over GAEBBOSS_CORPUS
-	uv pip install --python .venv/bin/python pygaeb lxml
-	.venv/bin/python -I benchmarks/bench.py "$(GAEBBOSS_CORPUS)"
+bench-py: ## Time gaebboss against pygaeb and lxml over GAEBBOSS_CORPUS and redraw benchmarks/results.png
+	uv pip install --python .venv/bin/python pygaeb lxml matplotlib
+	.venv/bin/python -I benchmarks/bench.py "$(GAEBBOSS_CORPUS)" --repeat 3 --limit 40
+	.venv/bin/python -I benchmarks/plot.py
 
 ##@ Docs
 

@@ -31,7 +31,7 @@ GAEB is how German construction procurement moves: the Leistungsverzeichnis leav
 
 - **Generated from the standard**: 525 elements of DA XML 3.1, 3.2 and 3.3 typed, read and written straight from the vendored XSDs; `cargo xtask gen --check` fails CI when the code drifts from the schema ([coverage](docs/src/reference/coverage.md)).
 - **Every phase, every version**: X80 to X89 in DA XML 3.0 to 3.3 read losslessly; X83, X84 and X86 written in 3.2 and 3.3, element order and phase restrictions from the phase XSD, proven valid against the official schemas with lxml ([conformance](scripts/conformance.sh)).
-- **Fastest GAEB implementation measured**: 710 MB/s parsing real files from Python, about 215× pygaeb and 2.6× raw lxml; the 75 MB X81 in the corpus reads in 29 ms ([benchmarks](#benchmarks)).
+- **Fastest GAEB implementation measured**: 700 MB/s parsing real files from Python, about 210× pygaeb and 2.6× raw lxml; the 75 MB X81 in the corpus reads in 29 ms ([benchmarks](#benchmarks)).
 - **No floats near money**: `Decimal { mantissa, scale }` throughout, kaufmännisch rounding and item, discount and category totals per Fachdokumentation 4.6.17.
 - **Tender to bid**: `Bid::from_tender` takes an X83, applies unit prices, price components, not-offered marks, free quantities, bidder text complements, discount and VAT, and writes the X84 the way the "Regeln für X84" demand it, in the version the tender came in.
 - **Bill-of-quantities semantics**: Ordnungszahlen formed from `BoQBkdn`, item kinds (Grund-, Alternativ-, Bedarfs-, Pauschal-, Zulage-, Stundenlohnposition), categories, markup items, declared against computed totals.
@@ -156,12 +156,12 @@ Against pygaeb (the fullest open GAEB reader, Python on lxml) and raw lxml over 
   <img src="https://raw.githubusercontent.com/4thel00z/gaebboss/main/benchmarks/results.png" alt="gaebboss vs. pygaeb and lxml" width="100%">
 </p>
 
-**gaebboss is the fastest on both operations, including against lxml, which builds no GAEB model at all**: 710 MB/s opening and parsing against lxml's 269 and pygaeb's 3.3, and 389 MB/s walking every item with its Ordnungszahl, quantity and short text against lxml's 217 and pygaeb's 3.3.
+**gaebboss is the fastest on both operations, including against lxml, which builds no GAEB model at all**: 700 MB/s opening and parsing against lxml's 269 and pygaeb's 3.3, and 387 MB/s walking every item with its Ordnungszahl, quantity and short text against lxml's 204 and pygaeb's 3.3.
 
 <details>
 <summary><strong>Method and fine print</strong></summary>
 
-Best-of-3 per file over the first 40 files of a 164-file corpus of third-party exports (22 MB, DA XML 3.0 to 3.3), measured on an aarch64 workstation (Cortex-X925, 20 cores, single-threaded throughout) from the installed Python packages, every row in one session. The corpus is not redistributable; reproduce on your own files with [`benchmarks/bench.py`](benchmarks/README.md). The lxml rows parse the file and iterate `Item` elements reading `RNoPart` and `span` text: no Ordnungszahl formation, no kind, no decimals, so they are a floor for any lxml-based reader, not a competitor. pygaeb reads every text eagerly; its two rows coincide because parsing already does the work.
+Best-of-3 per file over the first 40 files of a 164-file corpus of third-party exports (22 MB, DA XML 3.0 to 3.3), measured on an aarch64 workstation (Cortex-X925, 20 cores, single-threaded throughout) from the installed Python packages, every row in one session. The corpus is not redistributable; reproduce on your own files with [`benchmarks/bench.py`](benchmarks/README.md). The lxml rows parse the file and iterate `Item` elements reading `RNoPart`, `Qty` and `span` text: no Ordnungszahl formation, no kind, no decimals, so they are a floor for any lxml-based reader, not a competitor. pygaeb reads every text eagerly; its two rows coincide because parsing already does the work.
 
 The Rust stages, from criterion on the same machine ([details](docs/src/reference/performance.md)):
 
