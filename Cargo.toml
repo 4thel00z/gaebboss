@@ -9,7 +9,7 @@ members = [
 ]
 
 [workspace.package]
-version = "0.1.0"
+version = "0.1.0" # x-release-please-version
 edition = "2024"
 rust-version = "1.90"
 license = "MIT OR Apache-2.0"
@@ -19,7 +19,7 @@ readme = "README.md"
 keywords = ["gaeb", "construction", "bill-of-quantities", "xml", "ava"]
 
 [workspace.dependencies]
-gaebboss-core = { path = "crates/gaebboss-core", version = "0.1.0" }
+gaebboss-core = { path = "crates/gaebboss-core", version = "0.1.0" } # x-release-please-version
 gaebboss-testkit = { path = "crates/gaebboss-testkit" }
 memchr = "2"
 thiserror = "2"

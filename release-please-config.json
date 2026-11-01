@@ -1,12 +1,13 @@
 {
   "$schema": "https://raw.githubusercontent.com/googleapis/release-please/main/schemas/config.json",
-  "release-type": "rust",
   "packages": {
     ".": {
+      "release-type": "python",
       "package-name": "gaebboss",
-      "extra-files": [
-        { "type": "toml", "path": "pyproject.toml", "jsonpath": "$.project.version" }
-      ]
+      "include-component-in-tag": false,
+      "bump-minor-pre-major": true,
+      "pull-request-title-pattern": "chore: release ${version}",
+      "extra-files": ["Cargo.toml"]
     }
   }
 }
