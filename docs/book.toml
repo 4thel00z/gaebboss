@@ -9,5 +9,7 @@ src = "src"
 build-dir = "book"
 
 [output.html]
+site-url = "/docs/"
 default-theme = "light"
 git-repository-url = "https://github.com/4thel00z/gaebboss"
+edit-url-template = "https://github.com/4thel00z/gaebboss/edit/main/docs/{path}"

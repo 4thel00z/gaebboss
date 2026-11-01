@@ -9,14 +9,15 @@
 <p align="center">
   <a href="https://github.com/4thel00z/gaebboss/actions/workflows/ci.yaml"><img src="https://github.com/4thel00z/gaebboss/actions/workflows/ci.yaml/badge.svg" alt="CI"></a>
   <a href="https://github.com/4thel00z/gaebboss/actions/workflows/python-ci.yml"><img src="https://github.com/4thel00z/gaebboss/actions/workflows/python-ci.yml/badge.svg" alt="python-ci"></a>
-  <a href="https://4thel00z.github.io/gaebboss/"><img src="https://img.shields.io/badge/docs-book-blue?logo=mdbook&logoColor=white" alt="Documentation"></a>
+  <a href="https://gaebboss.dev/docs/"><img src="https://img.shields.io/badge/docs-book-blue?logo=mdbook&logoColor=white" alt="Documentation"></a>
   <a href="https://pypi.org/project/gaebboss/"><img src="https://img.shields.io/pypi/v/gaebboss?logo=pypi&logoColor=white" alt="PyPI"></a>
   <img src="https://img.shields.io/badge/rust-2024-000000?logo=rust&logoColor=white" alt="Rust 2024">
   <a href="#license"><img src="https://img.shields.io/badge/license-MIT%20OR%20Apache--2.0-blue.svg" alt="MIT OR Apache-2.0"></a>
 </p>
 
 <p align="center">
-  <a href="https://4thel00z.github.io/gaebboss/">Docs</a> ·
+  <a href="https://gaebboss.dev">gaebboss.dev</a> ·
+  <a href="https://gaebboss.dev/docs/">Docs</a> ·
   <a href="https://pypi.org/project/gaebboss/">PyPI</a> ·
   <a href="https://crates.io/crates/gaebboss-cli">crates.io</a> ·
   <a href="#benchmarks">Benchmarks</a>
@@ -57,6 +58,10 @@ gaebboss bid       tender.X83 --prices prices.csv --bidder bidder.toml -o bid.X8
 ```
 
 `prices.csv` is `OZ;unit price` (`;`, tab or `,`, a `-` price marks an item not offered, an optional third column is the quantity of a free-quantity item). `bidder.toml` carries `name1`, `street`, `pcode`, `city` and optionally `vat_percent` and `discount_percent`.
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/4thel00z/gaebboss/main/assets/cli.png" alt="The gaebboss CLI reading the official BVBS X83, pricing it into an X84 bid and validating the bid against the tender" width="100%">
+</p>
 
 ```python
 from decimal import Decimal

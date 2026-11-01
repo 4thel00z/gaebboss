@@ -24,6 +24,7 @@ classifiers = [
 
 [project.urls]
 Homepage = "https://gaebboss.dev"
+Documentation = "https://gaebboss.dev/docs/"
 Repository = "https://github.com/4thel00z/gaebboss"
 
 [tool.maturin]
