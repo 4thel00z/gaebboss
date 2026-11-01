@@ -736,9 +736,11 @@ mod tests {
         let assign = element(ctlg, "CtlgAssignType").unwrap();
         assert!(matches!(assign.type_ref(), Some(TypeRef::InlineSimple(_))));
         let item = &schema.types["tgItem"];
-        let Content::Sequence(parts) = &item.content else {
-            panic!("tgItem is a sequence")
-        };
+        let parts = match &item.content {
+            Content::Sequence(parts) => Some(parts),
+            _ => None,
+        }
+        .unwrap();
         assert!(parts.iter().any(|p| matches!(p, Particle::Group { .. })));
         let bkdn = element(&schema.types["tgBoQInfo"], "BoQBkdn").unwrap();
         assert_eq!(bkdn.bounds(), (1, Max::Bounded(7)));
