@@ -70,7 +70,8 @@ fn generate(check: bool) -> Result<(), String> {
         ),
     ];
     let mut stale = Vec::new();
-    for (path, content) in &outputs {
+    for (path, raw) in &outputs {
+        let content = &rustfmt(raw)?;
         let current = std::fs::read_to_string(path).unwrap_or_default();
         if current == *content {
             continue;
@@ -89,4 +90,27 @@ fn generate(check: bool) -> Result<(), String> {
         "generated sources are stale: {}\nrun `cargo xtask gen`",
         stale.join(", ")
     ))
+}
+
+/// The source as `cargo fmt` would leave it, so checked-in output is stable.
+fn rustfmt(source: &str) -> Result<String, String> {
+    use std::io::Write as _;
+    let mut child = std::process::Command::new("rustfmt")
+        .args(["--edition", "2024", "--emit", "stdout", "--quiet"])
+        .stdin(std::process::Stdio::piped())
+        .stdout(std::process::Stdio::piped())
+        .spawn()
+        .map_err(|e| format!("rustfmt: {e}"))?;
+    if let Some(mut stdin) = child.stdin.take() {
+        stdin
+            .write_all(source.as_bytes())
+            .map_err(|e| format!("rustfmt stdin: {e}"))?;
+    }
+    let output = child
+        .wait_with_output()
+        .map_err(|e| format!("rustfmt: {e}"))?;
+    if !output.status.success() {
+        return Err("rustfmt failed on generated source".to_string());
+    }
+    String::from_utf8(output.stdout).map_err(|e| format!("rustfmt output: {e}"))
 }
