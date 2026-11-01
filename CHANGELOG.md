@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.1.2](https://github.com/4thel00z/gaebboss/compare/v0.1.1...v0.1.2) (2026-11-01)
+
+
+### Documentation
+
+* **bench:** re-measure with quantities in the item walk, chart from plot.py ([fd5cfb7](https://github.com/4thel00z/gaebboss/commit/fd5cfb7f4c135f8adde02569b9c98d811357e29e))
+
 ## [0.1.1](https://github.com/4thel00z/gaebboss/compare/v0.1.0...v0.1.1) (2026-11-01)
 
 
