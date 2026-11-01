@@ -4,7 +4,7 @@
 use std::collections::{BTreeMap, BTreeSet};
 use std::path::{Path, PathBuf};
 
-#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+#[derive(Debug, Clone, Copy, PartialEq, Eq, PartialOrd, Ord, Hash)]
 pub enum SchemaVersion {
     V31,
     V32,
@@ -461,8 +461,8 @@ fn complex_type(node: roxmltree::Node) -> ComplexType {
 fn fill_complex(node: roxmltree::Node, ty: &mut ComplexType) {
     for child in node.children().filter(|c| c.is_element()) {
         match child.tag_name().name() {
-            "sequence" => ty.content = Content::Sequence(particles(child)),
-            "choice" => ty.content = Content::Choice(particles(child)),
+            "sequence" => ty.content = compositor(child, Content::Sequence(particles(child))),
+            "choice" => ty.content = compositor(child, Content::Choice(particles(child))),
             "attribute" => ty.attributes.push(attribute(child)),
             "simpleContent" => {
                 for ext in child
@@ -486,6 +486,20 @@ fn fill_complex(node: roxmltree::Node, ty: &mut ComplexType) {
             _ => {}
         }
     }
+}
+
+/// A top-level compositor that repeats becomes a group, so its cardinality
+/// is not lost.
+fn compositor(node: roxmltree::Node, content: Content) -> Content {
+    let (min, max) = occurs(node);
+    if (min, max) == (1, Max::Bounded(1)) {
+        return content;
+    }
+    Content::Sequence(vec![Particle::Group {
+        content: Box::new(content),
+        min,
+        max,
+    }])
 }
 
 fn attribute(node: roxmltree::Node) -> Attribute {

@@ -3,6 +3,10 @@
 
 mod emit_names;
 mod emit_phase;
+mod emit_read;
+mod emit_types;
+#[allow(dead_code)]
+mod merge;
 #[allow(dead_code)]
 mod schema;
 
@@ -59,6 +63,7 @@ fn generate(check: bool) -> Result<(), String> {
     let names = emit_names::collect(&schemas);
     let latest = schemas.last().ok_or("no schemas")?;
     let phases = emit_phase::codes(latest);
+    let model = merge::merge(&schemas);
     let outputs = [
         (
             generated.join("names.rs"),
@@ -67,6 +72,14 @@ fn generate(check: bool) -> Result<(), String> {
         (
             generated.join("phase.rs"),
             emit_phase::emit(&phases, "standard/3.3 (tgDP)"),
+        ),
+        (
+            generated.join("model.rs"),
+            emit_types::emit(&model, SOURCES),
+        ),
+        (
+            generated.join("read.rs"),
+            emit_read::emit(&model, SOURCES, &names.elements, &names.attributes),
         ),
     ];
     let mut stale = Vec::new();
