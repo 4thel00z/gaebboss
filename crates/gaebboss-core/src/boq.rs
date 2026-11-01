@@ -214,7 +214,9 @@ pub struct CategoryTotal {
     pub declared: Option<Decimal>,
 }
 
-/// Sums per Fachdokumentation 4.6.17 next to what the file declares.
+/// Sums per Fachdokumentation 4.6.17 next to what the file declares. Only
+/// written totals (`IT`) are summed: an item without one carries no
+/// Gesamtbetrag ("Nur Einh.-Preis"), whatever its quantity and price say.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct BoqTotals {
     pub categories: Vec<CategoryTotal>,
@@ -368,9 +370,7 @@ fn sum_body<'a>(
             if !r.counts_towards_total() {
                 continue;
             }
-            let Some(total) = r.total().or_else(|| r.computed_total()) else {
-                continue;
-            };
+            let Some(total) = r.total() else { continue };
             sum = sum.checked_add(total)?;
             any = true;
         }

@@ -1,6 +1,7 @@
 //! Repository chores: `cargo xtask gen` regenerates the schema-derived
 //! sources of gaebboss-core from the vendored GAEB XSDs.
 
+mod corpus;
 mod emit_names;
 mod emit_phase;
 mod emit_profile;
@@ -23,8 +24,21 @@ fn main() -> ExitCode {
     let check = args.iter().any(|a| a == "--check");
     match args.first().map(String::as_str) {
         Some("gen") => run(generate(check)),
+        Some("corpus") => {
+            let dir = args
+                .iter()
+                .position(|a| a == "--dir")
+                .and_then(|i| args.get(i + 1))
+                .cloned()
+                .or_else(|| std::env::var("GAEBBOSS_CORPUS").ok());
+            let Some(dir) = dir else {
+                eprintln!("usage: cargo xtask corpus --dir DIR (or GAEBBOSS_CORPUS)");
+                return ExitCode::FAILURE;
+            };
+            run(corpus::run(Path::new(&dir)))
+        }
         _ => {
-            eprintln!("usage: cargo xtask gen [--check]");
+            eprintln!("usage: cargo xtask gen [--check] | corpus --dir DIR");
             ExitCode::FAILURE
         }
     }
