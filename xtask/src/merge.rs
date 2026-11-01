@@ -258,13 +258,41 @@ fn scalar_of(model: &mut Model, schema: &Schema, type_name: &str) -> Scalar {
     scalar_of_simple(model, schema, simple, &rust_type_name(type_name))
 }
 
+/// The type itself when it enumerates values, else the nearest ancestor
+/// that does (`tgHourIt` restricts `tgYesNo` without repeating Yes/No).
+fn nearest_enumerated<'s>(schema: &'s Schema, simple: &'s SimpleType) -> &'s SimpleType {
+    let mut current = simple;
+    loop {
+        if !current.enumeration.is_empty() {
+            return current;
+        }
+        let Base::Derived(parent) = &current.base else {
+            return simple;
+        };
+        let Some(next) = schema
+            .simple
+            .get(parent)
+            .or_else(|| schema.extra_simple.get(parent))
+        else {
+            return simple;
+        };
+        current = next;
+    }
+}
+
 fn scalar_of_simple(
     model: &mut Model,
     schema: &Schema,
     simple: &SimpleType,
     rust_name: &str,
 ) -> Scalar {
-    let values = &simple.enumeration;
+    let enumerated = nearest_enumerated(schema, simple);
+    let values = &enumerated.enumeration;
+    let rust_name = match std::ptr::eq(enumerated, simple) {
+        true => rust_name.to_string(),
+        false => rust_type_name(&enumerated.name),
+    };
+    let rust_name = rust_name.as_str();
     let yes_no = !values.is_empty() && values.iter().all(|v| v == "Yes" || v == "No");
     if yes_no {
         return Scalar::Bool;

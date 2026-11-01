@@ -2176,7 +2176,7 @@ pub struct BoQCtgy {
     /// `<Accepted>`
     pub accepted: Option<Accepted>,
     /// `<NotApplBoQ>`
-    pub not_appl_boq: Option<Span>,
+    pub not_appl_boq: Option<bool>,
     /// `<CtlgAssign>`
     pub ctlg_assign: Vec<CtlgAssign>,
     /// `<BoQBody>`
@@ -3917,13 +3917,13 @@ pub struct Item {
     /// `<LumpSumItem>`
     pub lump_sum_item: Option<bool>,
     /// `<NotAppl>`
-    pub not_appl: Option<Span>,
+    pub not_appl: Option<bool>,
     /// `<NotOffered>`
     pub not_offered: Option<bool>,
     /// `<HourIt>`
-    pub hour_it: Option<Span>,
+    pub hour_it: Option<bool>,
     /// `<KeyIt>`
-    pub key_it: Option<Span>,
+    pub key_it: Option<bool>,
     /// `<UPBkdn>`
     pub up_bkdn: Option<bool>,
     /// `<MarkupIt>`
@@ -4160,11 +4160,11 @@ pub struct MarkupItem {
     /// `<ProvisAccpt>`
     pub provis_accpt: Option<bool>,
     /// `<NotAppl>`
-    pub not_appl: Option<Span>,
+    pub not_appl: Option<bool>,
     /// `<HourIt>`
-    pub hour_it: Option<Span>,
+    pub hour_it: Option<bool>,
     /// `<KeyIt>`
-    pub key_it: Option<Span>,
+    pub key_it: Option<bool>,
     /// `<CONo>`
     pub co_no: Option<i64>,
     /// `<COStatus>`
