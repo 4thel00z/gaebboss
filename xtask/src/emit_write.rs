@@ -188,21 +188,75 @@ fn emit_writer(out: &mut String, ty: &MType, variant: &dyn Fn(&str) -> String) {
         let _ = writeln!(out, "    let order = order_{}(w.version());", lower(name));
         let _ = writeln!(out, "    let mut cursor = [0usize; {n}];");
         if ty.ordered {
-            let _ = writeln!(out, "    for name in &value.children {{");
+            let groups: Vec<String> = ty
+                .groups
+                .iter()
+                .map(|g| {
+                    format!(
+                        "&[{}]",
+                        g.iter()
+                            .map(|n| format!("Name::{}", variant(n)))
+                            .collect::<Vec<_>>()
+                            .join(", ")
+                    )
+                })
+                .collect();
             let _ = writeln!(
                 out,
-                "        field_{}(w, value, *name, &mut cursor, restriction)?;",
+                "    let groups: &[&[Name]] = &[{}];",
+                groups.join(", ")
+            );
+            let _ = writeln!(
+                out,
+                "    let mut done = [false; {}];",
+                ty.groups.len().max(1)
+            );
+            let _ = writeln!(out, "    for name in order {{");
+            let _ = writeln!(
+                out,
+                "        let Some(g) = groups.iter().position(|g| g.contains(name)) else {{"
+            );
+            let _ = writeln!(
+                out,
+                "            while field_{}(w, value, *name, &mut cursor, restriction)? {{}}",
+                lower(name)
+            );
+            let _ = writeln!(out, "            continue;");
+            let _ = writeln!(out, "        }};");
+            let _ = writeln!(out, "        if done[g] {{");
+            let _ = writeln!(out, "            continue;");
+            let _ = writeln!(out, "        }}");
+            let _ = writeln!(out, "        done[g] = true;");
+            let _ = writeln!(
+                out,
+                "        for child in value.children.iter().filter(|c| groups[g].contains(c)) {{"
+            );
+            let _ = writeln!(
+                out,
+                "            field_{}(w, value, *child, &mut cursor, restriction)?;",
+                lower(name)
+            );
+            let _ = writeln!(out, "        }}");
+            let _ = writeln!(
+                out,
+                "        for member in order.iter().filter(|m| groups[g].contains(m)) {{"
+            );
+            let _ = writeln!(
+                out,
+                "            while field_{}(w, value, *member, &mut cursor, restriction)? {{}}",
+                lower(name)
+            );
+            let _ = writeln!(out, "        }}");
+            let _ = writeln!(out, "    }}");
+        } else {
+            let _ = writeln!(out, "    for name in order {{");
+            let _ = writeln!(
+                out,
+                "        while field_{}(w, value, *name, &mut cursor, restriction)? {{}}",
                 lower(name)
             );
             let _ = writeln!(out, "    }}");
         }
-        let _ = writeln!(out, "    for name in order {{");
-        let _ = writeln!(
-            out,
-            "        while field_{}(w, value, *name, &mut cursor, restriction)? {{}}",
-            lower(name)
-        );
-        let _ = writeln!(out, "    }}");
         for (i, f) in ty.fields.iter().enumerate() {
             let remaining = match f.many {
                 true => format!("value.{}.len() > cursor[{i}]", f.name),

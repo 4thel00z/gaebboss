@@ -119,6 +119,8 @@ pub struct Writer<'a> {
     text_level: Option<usize>,
     dropped: HashMap<(&'static str, String), usize>,
     missing: Vec<Missing>,
+    /// The open element is a `LblUPCompN` without its 3.3 `Type` attribute yet.
+    needs_up_comp_type: bool,
 }
 
 impl<'a> Writer<'a> {
@@ -138,6 +140,7 @@ impl<'a> Writer<'a> {
             text_level: None,
             dropped: HashMap::new(),
             missing: Vec::new(),
+            needs_up_comp_type: false,
         }
     }
 
@@ -239,6 +242,7 @@ impl<'a> Writer<'a> {
         }
         self.out.push(b'<');
         self.out.extend_from_slice(tag.as_bytes());
+        self.needs_up_comp_type = self.opts.version == Version::V33 && tag.starts_with("LblUPComp");
         if self.depth == 0
             && let Some(ns) = self.opts.phase.namespace(self.opts.version)
         {
@@ -250,7 +254,14 @@ impl<'a> Writer<'a> {
         self.had_children.push(false);
     }
 
+    /// Closes the start tag. A unit price component label from a file
+    /// older than 3.3 gets the `Type` the 3.3 schema requires, with the
+    /// standard's own catch-all value.
     pub fn open_end(&mut self) {
+        if self.needs_up_comp_type {
+            self.out.extend_from_slice(b" Type=\"Unknown\"");
+            self.needs_up_comp_type = false;
+        }
         self.out.push(b'>');
     }
 
@@ -269,6 +280,9 @@ impl<'a> Writer<'a> {
     }
 
     fn attr(&mut self, name: &str, value: &str) {
+        if name == "Type" {
+            self.needs_up_comp_type = false;
+        }
         self.out.push(b' ');
         self.out.extend_from_slice(name.as_bytes());
         self.out.extend_from_slice(b"=\"");

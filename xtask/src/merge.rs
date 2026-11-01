@@ -30,6 +30,8 @@ pub struct MType {
     /// Children of different names may interleave (a repeated choice), so
     /// instances record their child order.
     pub ordered: bool,
+    /// The element names of each repeated group whose members interleave.
+    pub groups: Vec<Vec<String>>,
 }
 
 #[derive(Debug, Clone)]
@@ -126,8 +128,17 @@ fn absorb_type(
         .map(|e| e.order.clone())
         .unwrap_or_default();
     let mut ordered = existing.as_ref().is_some_and(|e| e.ordered);
+    let mut groups = existing
+        .as_ref()
+        .map(|e| e.groups.clone())
+        .unwrap_or_default();
     versions.insert(schema.version);
     ordered |= interleaves(&ty.content);
+    for group in interleaving_groups(&ty.content) {
+        if !groups.contains(&group) {
+            groups.push(group);
+        }
+    }
     let mut particles = Vec::new();
     collect(&ty.content, &mut particles);
     let mut sequence: Vec<String> = Vec::new();
@@ -196,6 +207,7 @@ fn absorb_type(
             versions,
             order,
             ordered,
+            groups,
         },
     );
     inline
@@ -215,6 +227,11 @@ fn unify_aliases(model: &mut Model) {
                 continue;
             };
             target.ordered |= source.ordered;
+            for group in source.groups {
+                if !target.groups.contains(&group) {
+                    target.groups.push(group);
+                }
+            }
             for (version, sequence) in source.order {
                 let entry = target.order.entry(version).or_default();
                 for element in sequence {
@@ -257,6 +274,38 @@ fn interleaves(content: &Content) -> bool {
         }
         Particle::Element { .. } => false,
     })
+}
+
+/// The members of every repeated group with several alternatives.
+fn interleaving_groups(content: &Content) -> Vec<Vec<String>> {
+    let parts = match content {
+        Content::Sequence(p) | Content::Choice(p) => p,
+        Content::Empty => return Vec::new(),
+    };
+    let mut out = Vec::new();
+    for p in parts {
+        let Particle::Group { content, max, .. } = p else {
+            continue;
+        };
+        let alternatives = match &**content {
+            Content::Sequence(inner) | Content::Choice(inner) => inner.len(),
+            Content::Empty => 0,
+        };
+        if *max != Max::Bounded(1) && alternatives > 1 {
+            let mut members = Vec::new();
+            collect(content, &mut members);
+            let mut names: Vec<String> = Vec::new();
+            for (name, _, _) in members {
+                if !names.contains(&name) {
+                    names.push(name);
+                }
+            }
+            out.push(names);
+            continue;
+        }
+        out.extend(interleaving_groups(content));
+    }
+    out
 }
 
 fn collect(content: &Content, out: &mut Vec<(String, TypeRef, bool)>) {
@@ -546,5 +595,16 @@ mod tests {
         assert!(model.types["BoQBody"].ordered);
         assert!(!model.types["Item"].ordered);
         assert!(!model.types["GAEBInfo"].ordered);
+        assert_eq!(
+            model.types["Award"].groups,
+            vec![vec!["CnstSite".to_string(), "NotifSite".to_string()]]
+        );
+        assert!(
+            model.types["BoQText"]
+                .groups
+                .iter()
+                .any(|g| g.contains(&"Text".to_string())
+                    && g.contains(&"TextComplement".to_string()))
+        );
     }
 }

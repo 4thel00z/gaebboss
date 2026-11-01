@@ -2,6 +2,7 @@
 //! sources of gaebboss-core from the vendored GAEB XSDs.
 
 mod corpus;
+mod coverage;
 mod emit_names;
 mod emit_phase;
 mod emit_profile;
@@ -24,6 +25,7 @@ fn main() -> ExitCode {
     let check = args.iter().any(|a| a == "--check");
     match args.first().map(String::as_str) {
         Some("gen") => run(generate(check)),
+        Some("coverage") => run(coverage_report(check)),
         Some("corpus") => {
             let dir = args
                 .iter()
@@ -38,7 +40,7 @@ fn main() -> ExitCode {
             run(corpus::run(Path::new(&dir)))
         }
         _ => {
-            eprintln!("usage: cargo xtask gen [--check] | corpus --dir DIR");
+            eprintln!("usage: cargo xtask gen [--check] | coverage [--check] | corpus --dir DIR");
             ExitCode::FAILURE
         }
     }
@@ -149,4 +151,12 @@ fn rustfmt(source: &str) -> Result<String, String> {
         return Err("rustfmt failed on generated source".to_string());
     }
     String::from_utf8(output.stdout).map_err(|e| format!("rustfmt output: {e}"))
+}
+
+fn coverage_report(check: bool) -> Result<(), String> {
+    let root = repo_root();
+    let schemas = load_schemas(&root)?;
+    let model = merge::merge(&schemas);
+    let latest = schemas.last().ok_or("no schemas")?;
+    coverage::run(&root, latest, &model, check)
 }

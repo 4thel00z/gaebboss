@@ -31,7 +31,7 @@ def gaebboss_items(path: pathlib.Path) -> int:
 def pygaeb_parse(path: pathlib.Path) -> int:
     from pygaeb import GAEBParser
 
-    return len(GAEBParser.parse(str(path)).warnings or [])
+    return len(getattr(GAEBParser.parse(str(path)), "warnings", None) or [])
 
 
 def pygaeb_items(path: pathlib.Path) -> int:

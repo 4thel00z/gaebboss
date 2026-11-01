@@ -32,8 +32,47 @@ test: ## Run the workspace tests
 gen-check: ## Fail when generated sources are stale
 	cargo xtask gen --check
 
+.PHONY: coverage-check
+coverage-check: ## Fail when the schema coverage report is stale
+	cargo xtask coverage --check
+
 .PHONY: ci
-ci: fmt-check lint test gen-check ## Everything the Rust CI runs, in order
+ci: fmt-check lint test gen-check coverage-check ## Everything the Rust CI runs, in order
+
+.PHONY: conformance
+conformance: ## Write X8x files from the official fixtures and validate them against the official XSDs (needs uv)
+	scripts/conformance.sh
+
+.PHONY: corpus
+corpus: ## Per-stage throughput and warnings over GAEBBOSS_CORPUS
+	cargo xtask corpus
+
+.PHONY: bench
+bench: ## criterion benchmarks
+	cargo bench -p gaebboss-core --bench lex --bench parse --bench items --bench write
+
+##@ Python
+
+.PHONY: develop
+develop: ## Build and install the extension into .venv
+	test -d .venv || uv venv --python 3.12 .venv
+	uv pip install --python .venv/bin/python maturin pytest
+	VIRTUAL_ENV=$(CURDIR)/.venv .venv/bin/maturin develop --uv --release
+
+.PHONY: test-py
+test-py: ## Run the Python tests against the installed extension
+	.venv/bin/python -m pytest tests/python -q
+
+.PHONY: bench-py
+bench-py: ## Time gaebboss against pygaeb and lxml over GAEBBOSS_CORPUS
+	uv pip install --python .venv/bin/python pygaeb lxml
+	.venv/bin/python -I benchmarks/bench.py "$(GAEBBOSS_CORPUS)"
+
+##@ Docs
+
+.PHONY: book
+book: ## Build the mdBook into docs/book
+	mdbook build docs
 
 ##@ Help
 

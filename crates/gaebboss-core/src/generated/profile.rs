@@ -926,6 +926,19 @@ static V32_X83: &[(&str, Restriction)] = &[
             required: &[Name::ComplBody],
         },
     ),
+    (
+        "PerfDescription",
+        Restriction {
+            allowed: &[
+                Name::CompleteText,
+                Name::OutlineText,
+                Name::STLBBau,
+                Name::StLNo,
+                Name::WICNo,
+            ],
+            required: &[],
+        },
+    ),
 ];
 
 static V32_X84: &[(&str, Restriction)] = &[
@@ -1128,6 +1141,13 @@ static V32_X84: &[(&str, Restriction)] = &[
                 Name::WgChangeRate,
             ],
             required: &[Name::LblRefWage],
+        },
+    ),
+    (
+        "PerfDescription",
+        Restriction {
+            allowed: &[Name::CompleteText],
+            required: &[],
         },
     ),
 ];
@@ -1348,6 +1368,19 @@ static V32_X85: &[(&str, Restriction)] = &[
                 Name::UPSpec,
             ],
             required: &[Name::Description, Name::SubDNo],
+        },
+    ),
+    (
+        "PerfDescription",
+        Restriction {
+            allowed: &[
+                Name::CompleteText,
+                Name::OutlineText,
+                Name::STLBBau,
+                Name::StLNo,
+                Name::WICNo,
+            ],
+            required: &[],
         },
     ),
 ];
@@ -1662,6 +1695,19 @@ static V32_X86: &[(&str, Restriction)] = &[
             required: &[Name::ComplBody],
         },
     ),
+    (
+        "PerfDescription",
+        Restriction {
+            allowed: &[
+                Name::CompleteText,
+                Name::OutlineText,
+                Name::STLBBau,
+                Name::StLNo,
+                Name::WICNo,
+            ],
+            required: &[],
+        },
+    ),
 ];
 
 static V32_X87: &[(&str, Restriction)] = &[
@@ -1967,6 +2013,19 @@ static V32_X87: &[(&str, Restriction)] = &[
                 Name::ComplTail,
             ],
             required: &[Name::ComplBody],
+        },
+    ),
+    (
+        "PerfDescription",
+        Restriction {
+            allowed: &[
+                Name::CompleteText,
+                Name::OutlineText,
+                Name::STLBBau,
+                Name::StLNo,
+                Name::WICNo,
+            ],
+            required: &[],
         },
     ),
 ];
@@ -2588,6 +2647,19 @@ static V33_X52: &[(&str, Restriction)] = &[
                 Name::CtlgAssign,
             ],
             required: &[Name::ComplBody],
+        },
+    ),
+    (
+        "PerfDescription",
+        Restriction {
+            allowed: &[
+                Name::CompleteText,
+                Name::OutlineText,
+                Name::STLBBau,
+                Name::StLNo,
+                Name::WICNo,
+            ],
+            required: &[],
         },
     ),
 ];
@@ -3543,6 +3615,19 @@ static V33_X83: &[(&str, Restriction)] = &[
             required: &[Name::ComplBody],
         },
     ),
+    (
+        "PerfDescription",
+        Restriction {
+            allowed: &[
+                Name::CompleteText,
+                Name::OutlineText,
+                Name::STLBBau,
+                Name::StLNo,
+                Name::WICNo,
+            ],
+            required: &[],
+        },
+    ),
 ];
 
 static V33_X83Z: &[(&str, Restriction)] = &[
@@ -3810,6 +3895,13 @@ static V33_X83Z: &[(&str, Restriction)] = &[
         "HtmlPTC",
         Restriction {
             allowed: &[Name::Br, Name::Span],
+            required: &[],
+        },
+    ),
+    (
+        "PerfDescription",
+        Restriction {
+            allowed: &[Name::CompleteText, Name::STLBBau, Name::StLNo],
             required: &[],
         },
     ),
@@ -4461,6 +4553,19 @@ static V33_X85: &[(&str, Restriction)] = &[
             required: &[Name::Description, Name::SubDNo],
         },
     ),
+    (
+        "PerfDescription",
+        Restriction {
+            allowed: &[
+                Name::CompleteText,
+                Name::OutlineText,
+                Name::STLBBau,
+                Name::StLNo,
+                Name::WICNo,
+            ],
+            required: &[],
+        },
+    ),
 ];
 
 static V33_X86: &[(&str, Restriction)] = &[
@@ -4782,6 +4887,19 @@ static V33_X86: &[(&str, Restriction)] = &[
             required: &[Name::ComplBody],
         },
     ),
+    (
+        "PerfDescription",
+        Restriction {
+            allowed: &[
+                Name::CompleteText,
+                Name::OutlineText,
+                Name::STLBBau,
+                Name::StLNo,
+                Name::WICNo,
+            ],
+            required: &[],
+        },
+    ),
 ];
 
 static V33_X86ZE: &[(&str, Restriction)] = &[
@@ -4950,6 +5068,13 @@ static V33_X86ZE: &[(&str, Restriction)] = &[
         Restriction {
             allowed: &[Name::AcctRecNo, Name::AwardNo],
             required: &[Name::AwardNo],
+        },
+    ),
+    (
+        "PerfDescription",
+        Restriction {
+            allowed: &[Name::WICNo],
+            required: &[Name::WICNo],
         },
     ),
 ];
@@ -5230,6 +5355,13 @@ static V33_X86ZR: &[(&str, Restriction)] = &[
         "HtmlPTC",
         Restriction {
             allowed: &[Name::Br, Name::Span],
+            required: &[],
+        },
+    ),
+    (
+        "PerfDescription",
+        Restriction {
+            allowed: &[Name::CompleteText, Name::STLBBau, Name::StLNo],
             required: &[],
         },
     ),
@@ -5548,6 +5680,19 @@ static V33_X87: &[(&str, Restriction)] = &[
             required: &[Name::ComplBody],
         },
     ),
+    (
+        "PerfDescription",
+        Restriction {
+            allowed: &[
+                Name::CompleteText,
+                Name::OutlineText,
+                Name::STLBBau,
+                Name::StLNo,
+                Name::WICNo,
+            ],
+            required: &[],
+        },
+    ),
 ];
 
 static V33_X89: &[(&str, Restriction)] = &[
@@ -5815,6 +5960,19 @@ static V33_X89: &[(&str, Restriction)] = &[
             required: &[Name::Description],
         },
     ),
+    (
+        "PerfDescription",
+        Restriction {
+            allowed: &[
+                Name::CompleteText,
+                Name::OutlineText,
+                Name::STLBBau,
+                Name::StLNo,
+                Name::WICNo,
+            ],
+            required: &[],
+        },
+    ),
 ];
 
 static V33_X89B: &[(&str, Restriction)] = &[
@@ -6055,6 +6213,19 @@ static V33_X89B: &[(&str, Restriction)] = &[
         Restriction {
             allowed: &[Name::CONo, Name::CtlgAssign, Name::Description],
             required: &[Name::Description],
+        },
+    ),
+    (
+        "PerfDescription",
+        Restriction {
+            allowed: &[
+                Name::CompleteText,
+                Name::OutlineText,
+                Name::STLBBau,
+                Name::StLNo,
+                Name::WICNo,
+            ],
+            required: &[],
         },
     ),
 ];

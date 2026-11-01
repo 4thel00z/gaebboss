@@ -766,11 +766,23 @@ pub fn write_award(w: &mut Writer<'_>, value: &Award, tag: &str) -> Result<(), W
     w.open_end();
     let order = order_award(w.version());
     let mut cursor = [0usize; 11];
-    for name in &value.children {
-        field_award(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[Name::CnstSite, Name::NotifSite]];
+    let mut done = [false; 1];
     for name in order {
-        while field_award(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_award(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_award(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_award(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.dp.is_some() && cursor[0] == 0 {
         w.dropped("Award", "DP");
@@ -1829,11 +1841,23 @@ pub fn write_boqbody(w: &mut Writer<'_>, value: &BoQBody, tag: &str) -> Result<(
     w.open_end();
     let order = order_boqbody(w.version());
     let mut cursor = [0usize; 4];
-    for name in &value.children {
-        field_boqbody(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[Name::Remark, Name::PerfDescr, Name::BoQCtgy]];
+    let mut done = [false; 1];
     for name in order {
-        while field_boqbody(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_boqbody(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_boqbody(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_boqbody(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.remark.len() > cursor[0] {
         w.dropped("BoQBody", "Remark");
@@ -3333,11 +3357,23 @@ pub fn write_boqtext(w: &mut Writer<'_>, value: &BoQText, tag: &str) -> Result<(
     w.open_end();
     let order = order_boqtext(w.version());
     let mut cursor = [0usize; 4];
-    for name in &value.children {
-        field_boqtext(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[Name::Text, Name::TextComplement, Name::AttachmentLower]];
+    let mut done = [false; 1];
     for name in order {
-        while field_boqtext(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_boqtext(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_boqtext(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_boqtext(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.style.is_some() && cursor[0] == 0 {
         w.dropped("BoQText", "Style");
@@ -6948,11 +6984,28 @@ pub fn write_ecbody(w: &mut Writer<'_>, value: &ECBody, tag: &str) -> Result<(),
     w.open_end();
     let order = order_ecbody(w.version());
     let mut cursor = [0usize; 4];
-    for name in &value.children {
-        field_ecbody(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[
+        Name::ECCtgy,
+        Name::CostElement,
+        Name::DimensionElement,
+        Name::CategoryElement,
+    ]];
+    let mut done = [false; 1];
     for name in order {
-        while field_ecbody(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_ecbody(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_ecbody(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_ecbody(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.ec_ctgy.len() > cursor[0] {
         w.dropped("ECBody", "ECCtgy");
@@ -7855,11 +7908,33 @@ pub fn write_ftext(w: &mut Writer<'_>, value: &FText, tag: &str) -> Result<(), W
     w.open_end();
     let order = order_ftext(w.version());
     let mut cursor = [0usize; 9];
-    for name in &value.children {
-        field_ftext(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[
+        Name::P,
+        Name::Div,
+        Name::Span,
+        Name::Ul,
+        Name::Ol,
+        Name::Table,
+        Name::Br,
+        Name::Page,
+        Name::Image,
+    ]];
+    let mut done = [false; 1];
     for name in order {
-        while field_ftext(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_ftext(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_ftext(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_ftext(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.p.len() > cursor[0] {
         w.dropped("FText", "p");
@@ -8085,11 +8160,47 @@ pub fn write_ftexttc(w: &mut Writer<'_>, value: &FTextTC, tag: &str) -> Result<(
     w.open_end();
     let order = order_ftexttc(w.version());
     let mut cursor = [0usize; 10];
-    for name in &value.children {
-        field_ftexttc(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[
+        &[
+            Name::P,
+            Name::Div,
+            Name::Span,
+            Name::Ul,
+            Name::Ol,
+            Name::Table,
+            Name::Br,
+            Name::Page,
+            Name::Image,
+            Name::TextComplement,
+        ],
+        &[
+            Name::P,
+            Name::Div,
+            Name::Span,
+            Name::Ul,
+            Name::Ol,
+            Name::Table,
+            Name::Br,
+            Name::Page,
+            Name::Image,
+        ],
+    ];
+    let mut done = [false; 2];
     for name in order {
-        while field_ftexttc(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_ftexttc(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_ftexttc(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_ftexttc(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.p.len() > cursor[0] {
         w.dropped("FTextTC", "p");
@@ -9077,11 +9188,23 @@ pub fn write_htmldiv(w: &mut Writer<'_>, value: &HtmlDiv, tag: &str) -> Result<(
     w.open_end();
     let order = order_htmldiv(w.version());
     let mut cursor = [0usize; 2];
-    for name in &value.children {
-        field_htmldiv(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[Name::Span, Name::Br]];
+    let mut done = [false; 1];
     for name in order {
-        while field_htmldiv(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_htmldiv(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_htmldiv(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_htmldiv(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.span.len() > cursor[0] {
         w.dropped("HtmlDiv", "span");
@@ -9173,11 +9296,23 @@ pub fn write_htmldivtc(w: &mut Writer<'_>, value: &HtmlDivTC, tag: &str) -> Resu
     w.open_end();
     let order = order_htmldivtc(w.version());
     let mut cursor = [0usize; 3];
-    for name in &value.children {
-        field_htmldivtc(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[Name::Span, Name::Br, Name::TextComplement]];
+    let mut done = [false; 1];
     for name in order {
-        while field_htmldivtc(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_htmldivtc(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_htmldivtc(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_htmldivtc(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.span.len() > cursor[0] {
         w.dropped("HtmlDivTC", "span");
@@ -9311,11 +9446,26 @@ pub fn write_htmlli(w: &mut Writer<'_>, value: &HtmlLi, tag: &str) -> Result<(),
     w.open_end();
     let order = order_htmlli(w.version());
     let mut cursor = [0usize; 6];
-    for name in &value.children {
-        field_htmlli(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[
+        &[Name::P, Name::Div, Name::Span, Name::Br, Name::Ul, Name::Ol],
+        &[Name::P, Name::Div, Name::Span, Name::Br],
+    ];
+    let mut done = [false; 2];
     for name in order {
-        while field_htmlli(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_htmlli(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_htmlli(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_htmlli(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.p.len() > cursor[0] {
         w.dropped("HtmlLi", "p");
@@ -9487,11 +9637,31 @@ pub fn write_htmllitc(w: &mut Writer<'_>, value: &HtmlLiTC, tag: &str) -> Result
     w.open_end();
     let order = order_htmllitc(w.version());
     let mut cursor = [0usize; 7];
-    for name in &value.children {
-        field_htmllitc(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[
+        Name::P,
+        Name::Div,
+        Name::Span,
+        Name::Br,
+        Name::Ul,
+        Name::Ol,
+        Name::TextComplement,
+    ]];
+    let mut done = [false; 1];
     for name in order {
-        while field_htmllitc(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_htmllitc(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_htmllitc(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_htmllitc(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.p.len() > cursor[0] {
         w.dropped("HtmlLiTC", "p");
@@ -9601,11 +9771,23 @@ pub fn write_htmlol(w: &mut Writer<'_>, value: &HtmlOl, tag: &str) -> Result<(),
     w.open_end();
     let order = order_htmlol(w.version());
     let mut cursor = [0usize; 3];
-    for name in &value.children {
-        field_htmlol(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[Name::Li, Name::Ul, Name::Ol]];
+    let mut done = [false; 1];
     for name in order {
-        while field_htmlol(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_htmlol(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_htmlol(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_htmlol(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.li.len() > cursor[0] {
         w.dropped("HtmlOl", "li");
@@ -9767,11 +9949,23 @@ pub fn write_htmlp(w: &mut Writer<'_>, value: &HtmlP, tag: &str) -> Result<(), W
     w.open_end();
     let order = order_htmlp(w.version());
     let mut cursor = [0usize; 3];
-    for name in &value.children {
-        field_htmlp(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[Name::Span, Name::Br, Name::ImageLower]];
+    let mut done = [false; 1];
     for name in order {
-        while field_htmlp(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_htmlp(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_htmlp(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_htmlp(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.span.len() > cursor[0] {
         w.dropped("HtmlP", "span");
@@ -9857,11 +10051,23 @@ pub fn write_htmlpmltext(
     w.open_end();
     let order = order_htmlpmltext(w.version());
     let mut cursor = [0usize; 2];
-    for name in &value.children {
-        field_htmlpmltext(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[Name::Span, Name::Br]];
+    let mut done = [false; 1];
     for name in order {
-        while field_htmlpmltext(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_htmlpmltext(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_htmlpmltext(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_htmlpmltext(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.span.len() > cursor[0] {
         w.dropped("HtmlPMLText", "span");
@@ -9966,11 +10172,23 @@ pub fn write_htmlptc(w: &mut Writer<'_>, value: &HtmlPTC, tag: &str) -> Result<(
     w.open_end();
     let order = order_htmlptc(w.version());
     let mut cursor = [0usize; 4];
-    for name in &value.children {
-        field_htmlptc(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[Name::Span, Name::Br, Name::ImageLower, Name::TextComplement]];
+    let mut done = [false; 1];
     for name in order {
-        while field_htmlptc(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_htmlptc(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_htmlptc(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_htmlptc(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.span.len() > cursor[0] {
         w.dropped("HtmlPTC", "span");
@@ -10337,11 +10555,34 @@ pub fn write_htmltd(w: &mut Writer<'_>, value: &HtmlTd, tag: &str) -> Result<(),
     w.open_end();
     let order = order_htmltd(w.version());
     let mut cursor = [0usize; 7];
-    for name in &value.children {
-        field_htmltd(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[
+        &[
+            Name::P,
+            Name::Div,
+            Name::Span,
+            Name::Br,
+            Name::Table,
+            Name::Ol,
+            Name::Ul,
+        ],
+        &[Name::P, Name::Div, Name::Span, Name::Br, Name::Table],
+    ];
+    let mut done = [false; 2];
     for name in order {
-        while field_htmltd(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_htmltd(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_htmltd(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_htmltd(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.p.len() > cursor[0] {
         w.dropped("HtmlTd", "p");
@@ -10543,11 +10784,32 @@ pub fn write_htmltdtc(w: &mut Writer<'_>, value: &HtmlTdTC, tag: &str) -> Result
     w.open_end();
     let order = order_htmltdtc(w.version());
     let mut cursor = [0usize; 8];
-    for name in &value.children {
-        field_htmltdtc(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[
+        Name::P,
+        Name::Div,
+        Name::Span,
+        Name::Br,
+        Name::Table,
+        Name::Ol,
+        Name::Ul,
+        Name::TextComplement,
+    ]];
+    let mut done = [false; 1];
     for name in order {
-        while field_htmltdtc(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_htmltdtc(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_htmltdtc(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_htmltdtc(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.p.len() > cursor[0] {
         w.dropped("HtmlTdTC", "p");
@@ -10731,11 +10993,34 @@ pub fn write_htmlth(w: &mut Writer<'_>, value: &HtmlTh, tag: &str) -> Result<(),
     w.open_end();
     let order = order_htmlth(w.version());
     let mut cursor = [0usize; 7];
-    for name in &value.children {
-        field_htmlth(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[
+        &[
+            Name::P,
+            Name::Div,
+            Name::Span,
+            Name::Br,
+            Name::Table,
+            Name::Ul,
+            Name::Ol,
+        ],
+        &[Name::P, Name::Div, Name::Span, Name::Br, Name::Table],
+    ];
+    let mut done = [false; 2];
     for name in order {
-        while field_htmlth(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_htmlth(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_htmlth(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_htmlth(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.p.len() > cursor[0] {
         w.dropped("HtmlTh", "p");
@@ -10835,11 +11120,23 @@ pub fn write_htmltr(w: &mut Writer<'_>, value: &HtmlTr, tag: &str) -> Result<(),
     w.open_end();
     let order = order_htmltr(w.version());
     let mut cursor = [0usize; 2];
-    for name in &value.children {
-        field_htmltr(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[Name::Th, Name::Td]];
+    let mut done = [false; 1];
     for name in order {
-        while field_htmltr(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_htmltr(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_htmltr(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_htmltr(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.th.len() > cursor[0] {
         w.dropped("HtmlTr", "th");
@@ -10924,11 +11221,23 @@ pub fn write_htmltrtc(w: &mut Writer<'_>, value: &HtmlTrTC, tag: &str) -> Result
     w.open_end();
     let order = order_htmltrtc(w.version());
     let mut cursor = [0usize; 2];
-    for name in &value.children {
-        field_htmltrtc(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[Name::Th, Name::Td]];
+    let mut done = [false; 1];
     for name in order {
-        while field_htmltrtc(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_htmltrtc(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_htmltrtc(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_htmltrtc(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.th.len() > cursor[0] {
         w.dropped("HtmlTrTC", "th");
@@ -11020,11 +11329,23 @@ pub fn write_htmlul(w: &mut Writer<'_>, value: &HtmlUl, tag: &str) -> Result<(),
     w.open_end();
     let order = order_htmlul(w.version());
     let mut cursor = [0usize; 3];
-    for name in &value.children {
-        field_htmlul(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[Name::Li, Name::Ul, Name::Ol]];
+    let mut done = [false; 1];
     for name in order {
-        while field_htmlul(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_htmlul(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_htmlul(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_htmlul(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.li.len() > cursor[0] {
         w.dropped("HtmlUl", "li");
@@ -11672,11 +11993,23 @@ pub fn write_invoice(w: &mut Writer<'_>, value: &Invoice, tag: &str) -> Result<(
     w.open_end();
     let order = order_invoice(w.version());
     let mut cursor = [0usize; 20];
-    for name in &value.children {
-        field_invoice(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[Name::CnstSite, Name::NotifSite]];
+    let mut done = [false; 1];
     for name in order {
-        while field_invoice(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_invoice(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_invoice(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_invoice(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.dp.is_some() && cursor[0] == 0 {
         w.dropped("Invoice", "DP");
@@ -13914,11 +14247,32 @@ pub fn write_itemlist(w: &mut Writer<'_>, value: &Itemlist, tag: &str) -> Result
     w.open_end();
     let order = order_itemlist(w.version());
     let mut cursor = [0usize; 5];
-    for name in &value.children {
-        field_itemlist(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[
+        &[
+            Name::Remark,
+            Name::PerfDescr,
+            Name::Item,
+            Name::MarkupItem,
+            Name::MastAgrItems,
+        ],
+        &[Name::Remark, Name::PerfDescr, Name::Item, Name::MarkupItem],
+    ];
+    let mut done = [false; 2];
     for name in order {
-        while field_itemlist(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_itemlist(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_itemlist(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_itemlist(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.remark.len() > cursor[0] {
         w.dropped("Itemlist", "Remark");
@@ -14219,11 +14573,23 @@ pub fn write_mltext(w: &mut Writer<'_>, value: &MLText, tag: &str) -> Result<(),
     w.open_end();
     let order = order_mltext(w.version());
     let mut cursor = [0usize; 4];
-    for name in &value.children {
-        field_mltext(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[Name::P, Name::Div, Name::Span, Name::Br]];
+    let mut done = [false; 1];
     for name in order {
-        while field_mltext(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_mltext(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_mltext(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_mltext(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.p.len() > cursor[0] {
         w.dropped("MLText", "p");
@@ -15637,11 +16003,28 @@ pub fn write_mastagritems(
     w.open_end();
     let order = order_mastagritems(w.version());
     let mut cursor = [0usize; 4];
-    for name in &value.children {
-        field_mastagritems(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[
+        Name::HourItem,
+        Name::MaterialItem,
+        Name::MarkupItemOWN,
+        Name::MarkupItemCTR,
+    ]];
+    let mut done = [false; 1];
     for name in order {
-        while field_mastagritems(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_mastagritems(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_mastagritems(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_mastagritems(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.hour_item.len() > cursor[0] {
         w.dropped("MastAgrItems", "HourItem");
@@ -18107,11 +18490,23 @@ pub fn write_outltxt(w: &mut Writer<'_>, value: &OutlTxt, tag: &str) -> Result<(
     w.open_end();
     let order = order_outltxt(w.version());
     let mut cursor = [0usize; 3];
-    for name in &value.children {
-        field_outltxt(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[Name::TextOutlTxt, Name::TextComplement]];
+    let mut done = [false; 1];
     for name in order {
-        while field_outltxt(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_outltxt(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_outltxt(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_outltxt(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.style.is_some() && cursor[0] == 0 {
         w.dropped("OutlTxt", "Style");
@@ -20778,11 +21173,31 @@ pub fn write_refgroup(w: &mut Writer<'_>, value: &RefGroup, tag: &str) -> Result
     w.open_end();
     let order = order_refgroup(w.version());
     let mut cursor = [0usize; 8];
-    for name in &value.children {
-        field_refgroup(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[
+        Name::BoQItemRef,
+        Name::BoQCtgyRef,
+        Name::CostElementRef,
+        Name::CategoryElementRef,
+        Name::DimensionElementRef,
+        Name::ConsortiumMemberRef,
+        Name::ProjectBoQItemRef,
+    ]];
+    let mut done = [false; 1];
     for name in order {
-        while field_refgroup(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_refgroup(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_refgroup(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_refgroup(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.title.is_some() && cursor[0] == 0 {
         w.dropped("RefGroup", "Title");
@@ -20948,11 +21363,38 @@ pub fn write_refitems(w: &mut Writer<'_>, value: &RefItems, tag: &str) -> Result
     w.open_end();
     let order = order_refitems(w.version());
     let mut cursor = [0usize; 6];
-    for name in &value.children {
-        field_refitems(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[
+        &[
+            Name::Customer,
+            Name::CustomerSubNo,
+            Name::CustomerCtlgAssign,
+            Name::Supplier,
+            Name::SupplierSubNo,
+            Name::SupplierCtlgAssign,
+        ],
+        &[
+            Name::Customer,
+            Name::CustomerSubNo,
+            Name::Supplier,
+            Name::SupplierSubNo,
+        ],
+    ];
+    let mut done = [false; 2];
     for name in order {
-        while field_refitems(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_refitems(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_refitems(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_refitems(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.customer.len() > cursor[0] {
         w.dropped("RefItems", "Customer");
@@ -23782,11 +24224,29 @@ pub fn write_wgchange(w: &mut Writer<'_>, value: &WgChange, tag: &str) -> Result
     w.open_end();
     let order = order_wgchange(w.version());
     let mut cursor = [0usize; 7];
-    for name in &value.children {
-        field_wgchange(w, value, *name, &mut cursor, restriction)?;
-    }
+    let groups: &[&[Name]] = &[&[
+        Name::RefBoQ,
+        Name::RefLotNo,
+        Name::RefLotGrNo,
+        Name::RefItem,
+        Name::WgChangeRate,
+    ]];
+    let mut done = [false; 1];
     for name in order {
-        while field_wgchange(w, value, *name, &mut cursor, restriction)? {}
+        let Some(g) = groups.iter().position(|g| g.contains(name)) else {
+            while field_wgchange(w, value, *name, &mut cursor, restriction)? {}
+            continue;
+        };
+        if done[g] {
+            continue;
+        }
+        done[g] = true;
+        for child in value.children.iter().filter(|c| groups[g].contains(c)) {
+            field_wgchange(w, value, *child, &mut cursor, restriction)?;
+        }
+        for member in order.iter().filter(|m| groups[g].contains(m)) {
+            while field_wgchange(w, value, *member, &mut cursor, restriction)? {}
+        }
     }
     if value.lbl_ref_wage.is_some() && cursor[0] == 0 {
         w.dropped("WgChange", "LblRefWage");

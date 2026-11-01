@@ -1,6 +1,7 @@
 //! Emits `generated/profile.rs`: per (version, phase) the elements each
 //! type may and must carry, from the phase schemas' redefinitions.
 
+use std::collections::BTreeSet;
 use std::fmt::Write as _;
 
 use crate::emit_names::variants;
@@ -20,6 +21,13 @@ pub fn emit(
             .iter()
             .position(|n| n == name)
             .map(|i| element_variants[i].clone())
+    };
+    let names = |set: &BTreeSet<String>| -> String {
+        set.iter()
+            .filter_map(|n| variant(n))
+            .map(|v| format!("Name::{v}"))
+            .collect::<Vec<_>>()
+            .join(", ")
     };
     let mut out = String::new();
     let _ = writeln!(
@@ -50,21 +58,34 @@ pub fn emit(
             let phase = format!("X{}", code.replace('.', "_"));
             let table = format!("{version}_{phase}");
             let _ = writeln!(out, "static {table}: &[(&str, Restriction)] = &[");
+            let mut emitted: Vec<String> = Vec::new();
             for (xsd_type, restriction) in &profile.restricted {
                 let rust = rust_type_name(xsd_type);
                 if !model.types.contains_key(&rust) {
                     continue;
                 }
-                let names = |set: &std::collections::BTreeSet<String>| -> String {
-                    set.iter()
-                        .filter_map(|n| variant(n))
-                        .map(|v| format!("Name::{v}"))
-                        .collect::<Vec<_>>()
-                        .join(", ")
-                };
+                emitted.push(rust.clone());
                 let _ = writeln!(
                     out,
                     "    (\"{rust}\", Restriction {{ allowed: &[{}], required: &[{}] }}),",
+                    names(&restriction.allowed),
+                    names(&restriction.required)
+                );
+            }
+            for (kept, other) in &model.aliases {
+                if emitted.contains(kept) {
+                    continue;
+                }
+                let Some(other_xsd) = model.types.get(other).map(|t| t.xsd.clone()) else {
+                    continue;
+                };
+                let Some(restriction) = profile.restricted.get(&other_xsd) else {
+                    continue;
+                };
+                emitted.push(kept.clone());
+                let _ = writeln!(
+                    out,
+                    "    (\"{kept}\", Restriction {{ allowed: &[{}], required: &[{}] }}),",
                     names(&restriction.allowed),
                     names(&restriction.required)
                 );
