@@ -1,10 +1,9 @@
 <svg xmlns="http://www.w3.org/2000/svg" width="640" height="160" viewBox="0 0 640 160">
-  <rect x="8" y="8" width="144" height="144" rx="28" fill="#1c5cab"/>
-  <g fill="#fcfcfb">
-    <rect x="34" y="40" width="22" height="14" rx="3"/><rect x="64" y="40" width="40" height="14" rx="3" opacity=".55"/><rect x="112" y="40" width="14" height="14" rx="3" fill="#eb6834"/>
-    <rect x="34" y="66" width="22" height="14" rx="3"/><rect x="64" y="66" width="62" height="14" rx="3" opacity=".55"/>
-    <rect x="34" y="92" width="22" height="14" rx="3"/><rect x="64" y="92" width="30" height="14" rx="3" opacity=".55"/><rect x="102" y="92" width="24" height="14" rx="3" fill="#eb6834"/>
-    <rect x="34" y="118" width="92" height="4" rx="2" opacity=".9"/>
+  <g fill="none" stroke="#1c5cab" stroke-width="14" stroke-linecap="round" stroke-linejoin="round">
+    <path d="M48 44 L18 80 L48 116"/><path d="M132 44 L162 80 L132 116"/>
   </g>
-  <text x="180" y="104" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="78" font-weight="700" fill="#0b0b0b" letter-spacing="-2">gaeb<tspan fill="#1c5cab">boss</tspan></text>
+  <path d="M60 96 a30 30 0 0 1 60 0 z" fill="#eb6834"/>
+  <rect x="52" y="94" width="76" height="12" rx="6" fill="#d95926"/>
+  <rect x="84" y="62" width="12" height="26" rx="4" fill="#fcfcfb"/>
+  <text x="190" y="104" font-family="Inter, 'Helvetica Neue', Arial, sans-serif" font-size="78" font-weight="700" fill="#0b0b0b" letter-spacing="-2">gaeb<tspan fill="#eb6834">boss</tspan></text>
 </svg>
