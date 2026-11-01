@@ -17,6 +17,7 @@ pub fn emit(model: &Model, sources: &str) -> String {
     );
     let _ = writeln!(out, "//! whose strings are spans into the document.\n");
     let _ = writeln!(out, "use crate::decimal::Decimal;");
+    let _ = writeln!(out, "use crate::name::Name;");
     let _ = writeln!(out, "use crate::read::EnumValue;");
     let _ = writeln!(out, "use crate::span::Span;");
     let _ = writeln!(out, "use crate::tape::NodeId;\n");
@@ -83,6 +84,13 @@ fn emit_struct(out: &mut String, ty: &MType) {
                 let _ = writeln!(out, "    pub {}: Option<{inner}>,", f.name);
             }
         }
+    }
+    if ty.ordered {
+        let _ = writeln!(
+            out,
+            "    /// The child elements in document order, so interleaved children write back as read."
+        );
+        let _ = writeln!(out, "    pub children: Vec<Name>,");
     }
     let _ = writeln!(
         out,

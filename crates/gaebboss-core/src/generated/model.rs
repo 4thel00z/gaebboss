@@ -3,6 +3,7 @@
 //! whose strings are spans into the document.
 
 use crate::decimal::Decimal;
+use crate::name::Name;
 use crate::read::EnumValue;
 use crate::span::Span;
 use crate::tape::NodeId;
@@ -1999,6 +2000,8 @@ pub struct Award {
     pub boq: Option<BoQ>,
     /// `<WgChange>`
     pub wg_change: Option<WgChange>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -2137,6 +2140,8 @@ pub struct BoQBody {
     pub boq_ctgy: Vec<BoQCtgy>,
     /// `<Itemlist>`
     pub itemlist: Option<Itemlist>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -2355,6 +2360,8 @@ pub struct BoQText {
     pub text_complement: Vec<TextComplement>,
     /// `<attachment>`
     pub attachment: Vec<Span>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -2962,6 +2969,8 @@ pub struct ECBody {
     pub dimension_element: Vec<DimensionElement>,
     /// `<CategoryElement>`
     pub category_element: Vec<CategoryElement>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -3092,6 +3101,8 @@ pub struct FText {
     pub page: Vec<Span>,
     /// `<Image>`
     pub image: Vec<Image>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -3124,6 +3135,8 @@ pub struct FTextTC {
     pub image: Vec<Image>,
     /// `<TextComplement>`
     pub text_complement: Vec<TextComplement>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -3266,6 +3279,8 @@ pub struct HtmlDiv {
     pub span: Vec<HtmlSpan>,
     /// `<br>`
     pub br: Vec<Span>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -3284,6 +3299,8 @@ pub struct HtmlDivTC {
     pub br: Vec<Span>,
     /// `<TextComplement>`
     pub text_complement: Vec<TextComplement>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -3308,6 +3325,8 @@ pub struct HtmlLi {
     pub ul: Vec<HtmlUl>,
     /// `<ol>`
     pub ol: Vec<HtmlOl>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -3334,6 +3353,8 @@ pub struct HtmlLiTC {
     pub ol: Vec<HtmlOlTC>,
     /// `<TextComplement>`
     pub text_complement: Vec<TextComplement>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -3354,6 +3375,8 @@ pub struct HtmlOl {
     pub ul: Vec<HtmlUl>,
     /// `<ol>`
     pub ol: Vec<HtmlOl>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -3388,6 +3411,8 @@ pub struct HtmlP {
     pub br: Vec<Span>,
     /// `<image>`
     pub image: Vec<Image>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -3404,6 +3429,8 @@ pub struct HtmlPMLText {
     pub span: Vec<HtmlSpan>,
     /// `<br>`
     pub br: Vec<Span>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -3424,6 +3451,8 @@ pub struct HtmlPTC {
     pub image: Vec<Image>,
     /// `<TextComplement>`
     pub text_complement: Vec<TextComplement>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -3527,6 +3556,8 @@ pub struct HtmlTd {
     pub ol: Vec<HtmlOl>,
     /// `<ul>`
     pub ul: Vec<HtmlUl>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -3563,6 +3594,8 @@ pub struct HtmlTdTC {
     pub ul: Vec<HtmlUlTC>,
     /// `<TextComplement>`
     pub text_complement: Vec<TextComplement>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -3593,6 +3626,8 @@ pub struct HtmlTh {
     pub ul: Vec<HtmlUl>,
     /// `<ol>`
     pub ol: Vec<HtmlOl>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -3613,6 +3648,8 @@ pub struct HtmlTr {
     pub th: Vec<HtmlTh>,
     /// `<td>`
     pub td: Vec<HtmlTd>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -3633,6 +3670,8 @@ pub struct HtmlTrTC {
     pub th: Vec<HtmlTh>,
     /// `<td>`
     pub td: Vec<HtmlTdTC>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -3651,6 +3690,8 @@ pub struct HtmlUl {
     pub ul: Vec<HtmlUl>,
     /// `<ol>`
     pub ol: Vec<HtmlOl>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -3776,6 +3817,8 @@ pub struct Invoice {
     pub invoice_made_out: Vec<InvoiceMadeOut>,
     /// `<TotalGross>`
     pub total_gross: Option<Decimal>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -4056,6 +4099,8 @@ pub struct Itemlist {
     pub markup_item: Vec<MarkupItem>,
     /// `<MastAgrItems>`
     pub mast_agr_items: Vec<MastAgrItems>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -4115,6 +4160,8 @@ pub struct MLText {
     pub span: Vec<HtmlSpan>,
     /// `<br>`
     pub br: Vec<Span>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -4307,6 +4354,8 @@ pub struct MastAgrItems {
     pub markup_item_own: Vec<MarkupItemOWN>,
     /// `<MarkupItemCTR>`
     pub markup_item_ctr: Vec<MarkupItemCTR>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -4615,6 +4664,8 @@ pub struct OutlTxt {
     pub text_outl_txt: Vec<MLText>,
     /// `<TextComplement>`
     pub text_complement: Vec<TextComplement>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -5029,6 +5080,8 @@ pub struct RefGroup {
     pub consortium_member_ref: Vec<ConsortiumMemberRef>,
     /// `<ProjectBoQItemRef>`
     pub project_boq_item_ref: Vec<ProjectBoQItemRef>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -5059,6 +5112,8 @@ pub struct RefItems {
     pub supplier_sub_no: Vec<Span>,
     /// `<SupplierCtlgAssign>`
     pub supplier_ctlg_assign: Vec<CtlgAssign>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }
@@ -5529,6 +5584,8 @@ pub struct WgChange {
     pub ref_item: Vec<RefItem>,
     /// `<WgChangeRate>`
     pub wg_change_rate: Vec<Decimal>,
+    /// The child elements in document order, so interleaved children write back as read.
+    pub children: Vec<Name>,
     /// Children the schema does not know, kept for writing back.
     pub extra: Vec<NodeId>,
 }

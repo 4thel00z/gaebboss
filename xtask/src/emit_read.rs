@@ -130,7 +130,18 @@ fn emit_reader(
                 f.name
             ),
         };
-        let _ = writeln!(out, "            Name::{variant} => {line}");
+        match ty.ordered {
+            true => {
+                let body = line.trim_end_matches(',');
+                let _ = writeln!(out, "            Name::{variant} => {{");
+                let _ = writeln!(out, "                out.children.push(Name::{variant});");
+                let _ = writeln!(out, "                {body};");
+                let _ = writeln!(out, "            }}");
+            }
+            false => {
+                let _ = writeln!(out, "            Name::{variant} => {line}");
+            }
+        }
     }
     let _ = writeln!(
         out,

@@ -3,9 +3,10 @@
 
 mod emit_names;
 mod emit_phase;
+mod emit_profile;
 mod emit_read;
 mod emit_types;
-#[allow(dead_code)]
+mod emit_write;
 mod merge;
 #[allow(dead_code)]
 mod schema;
@@ -80,6 +81,14 @@ fn generate(check: bool) -> Result<(), String> {
         (
             generated.join("read.rs"),
             emit_read::emit(&model, SOURCES, &names.elements, &names.attributes),
+        ),
+        (
+            generated.join("write.rs"),
+            emit_write::emit(&model, SOURCES, &names.elements),
+        ),
+        (
+            generated.join("profile.rs"),
+            emit_profile::emit(&schemas, &model, &names.elements, &phases, SOURCES),
         ),
     ];
     let mut stale = Vec::new();

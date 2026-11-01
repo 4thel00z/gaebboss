@@ -16,6 +16,7 @@ pub mod tape;
 pub mod text;
 pub mod version;
 pub mod warning;
+pub mod write;
 
 /// The typed GAEB model generated from the schemas.
 pub mod model {

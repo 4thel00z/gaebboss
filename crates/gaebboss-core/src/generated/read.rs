@@ -85,19 +85,50 @@ pub fn read_award(r: &mut Reader<'_>, node: NodeId) -> Award {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::DP => r.set_span(&mut out.dp, node, child),
-            Name::AwardInfo => r.set_complex(&mut out.award_info, node, child, read_awardinfo),
-            Name::IndivAgrInfo => {
-                r.set_complex(&mut out.indiv_agr_info, node, child, read_indivagrinfo)
+            Name::DP => {
+                out.children.push(Name::DP);
+                r.set_span(&mut out.dp, node, child);
             }
-            Name::OWN => r.set_complex(&mut out.own, node, child, read_own),
-            Name::Requester => out.requester.push(read_requester(r, child)),
-            Name::CTR => r.set_complex(&mut out.ctr, node, child, read_ctr),
-            Name::CnstSite => out.cnst_site.push(read_cnstsite(r, child)),
-            Name::NotifSite => out.notif_site.push(read_notifsite(r, child)),
-            Name::AddText => out.add_text.push(read_addtext(r, child)),
-            Name::BoQ => r.set_complex(&mut out.boq, node, child, read_boq),
-            Name::WgChange => r.set_complex(&mut out.wg_change, node, child, read_wgchange),
+            Name::AwardInfo => {
+                out.children.push(Name::AwardInfo);
+                r.set_complex(&mut out.award_info, node, child, read_awardinfo);
+            }
+            Name::IndivAgrInfo => {
+                out.children.push(Name::IndivAgrInfo);
+                r.set_complex(&mut out.indiv_agr_info, node, child, read_indivagrinfo);
+            }
+            Name::OWN => {
+                out.children.push(Name::OWN);
+                r.set_complex(&mut out.own, node, child, read_own);
+            }
+            Name::Requester => {
+                out.children.push(Name::Requester);
+                out.requester.push(read_requester(r, child));
+            }
+            Name::CTR => {
+                out.children.push(Name::CTR);
+                r.set_complex(&mut out.ctr, node, child, read_ctr);
+            }
+            Name::CnstSite => {
+                out.children.push(Name::CnstSite);
+                out.cnst_site.push(read_cnstsite(r, child));
+            }
+            Name::NotifSite => {
+                out.children.push(Name::NotifSite);
+                out.notif_site.push(read_notifsite(r, child));
+            }
+            Name::AddText => {
+                out.children.push(Name::AddText);
+                out.add_text.push(read_addtext(r, child));
+            }
+            Name::BoQ => {
+                out.children.push(Name::BoQ);
+                r.set_complex(&mut out.boq, node, child, read_boq);
+            }
+            Name::WgChange => {
+                out.children.push(Name::WgChange);
+                r.set_complex(&mut out.wg_change, node, child, read_wgchange);
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -237,10 +268,22 @@ pub fn read_boqbody(r: &mut Reader<'_>, node: NodeId) -> BoQBody {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::Remark => out.remark.push(read_remark(r, child)),
-            Name::PerfDescr => out.perf_descr.push(read_perfdescr(r, child)),
-            Name::BoQCtgy => out.boq_ctgy.push(read_boqctgy(r, child)),
-            Name::Itemlist => r.set_complex(&mut out.itemlist, node, child, read_itemlist),
+            Name::Remark => {
+                out.children.push(Name::Remark);
+                out.remark.push(read_remark(r, child));
+            }
+            Name::PerfDescr => {
+                out.children.push(Name::PerfDescr);
+                out.perf_descr.push(read_perfdescr(r, child));
+            }
+            Name::BoQCtgy => {
+                out.children.push(Name::BoQCtgy);
+                out.boq_ctgy.push(read_boqctgy(r, child));
+            }
+            Name::Itemlist => {
+                out.children.push(Name::Itemlist);
+                r.set_complex(&mut out.itemlist, node, child, read_itemlist);
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -504,10 +547,22 @@ pub fn read_boqtext(r: &mut Reader<'_>, node: NodeId) -> BoQText {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::Style => r.set_complex(&mut out.style, node, child, read_style),
-            Name::Text => out.text.push(read_ftexttc(r, child)),
-            Name::TextComplement => out.text_complement.push(read_textcomplement(r, child)),
-            Name::AttachmentLower => r.push_span(&mut out.attachment, child),
+            Name::Style => {
+                out.children.push(Name::Style);
+                r.set_complex(&mut out.style, node, child, read_style);
+            }
+            Name::Text => {
+                out.children.push(Name::Text);
+                out.text.push(read_ftexttc(r, child));
+            }
+            Name::TextComplement => {
+                out.children.push(Name::TextComplement);
+                out.text_complement.push(read_textcomplement(r, child));
+            }
+            Name::AttachmentLower => {
+                out.children.push(Name::AttachmentLower);
+                r.push_span(&mut out.attachment, child);
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -1350,10 +1405,22 @@ pub fn read_ecbody(r: &mut Reader<'_>, node: NodeId) -> ECBody {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::ECCtgy => out.ec_ctgy.push(read_ecctgy(r, child)),
-            Name::CostElement => out.cost_element.push(read_costelement(r, child)),
-            Name::DimensionElement => out.dimension_element.push(read_dimensionelement(r, child)),
-            Name::CategoryElement => out.category_element.push(read_categoryelement(r, child)),
+            Name::ECCtgy => {
+                out.children.push(Name::ECCtgy);
+                out.ec_ctgy.push(read_ecctgy(r, child));
+            }
+            Name::CostElement => {
+                out.children.push(Name::CostElement);
+                out.cost_element.push(read_costelement(r, child));
+            }
+            Name::DimensionElement => {
+                out.children.push(Name::DimensionElement);
+                out.dimension_element.push(read_dimensionelement(r, child));
+            }
+            Name::CategoryElement => {
+                out.children.push(Name::CategoryElement);
+                out.category_element.push(read_categoryelement(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -1488,15 +1555,42 @@ pub fn read_ftext(r: &mut Reader<'_>, node: NodeId) -> FText {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::P => out.p.push(read_htmlp(r, child)),
-            Name::Div => out.div.push(read_htmldiv(r, child)),
-            Name::Span => out.span.push(read_htmlspan(r, child)),
-            Name::Ul => out.ul.push(read_htmlul(r, child)),
-            Name::Ol => out.ol.push(read_htmlol(r, child)),
-            Name::Table => out.table.push(read_htmltable(r, child)),
-            Name::Br => r.push_span(&mut out.br, child),
-            Name::Page => r.push_span(&mut out.page, child),
-            Name::Image => out.image.push(read_image(r, child)),
+            Name::P => {
+                out.children.push(Name::P);
+                out.p.push(read_htmlp(r, child));
+            }
+            Name::Div => {
+                out.children.push(Name::Div);
+                out.div.push(read_htmldiv(r, child));
+            }
+            Name::Span => {
+                out.children.push(Name::Span);
+                out.span.push(read_htmlspan(r, child));
+            }
+            Name::Ul => {
+                out.children.push(Name::Ul);
+                out.ul.push(read_htmlul(r, child));
+            }
+            Name::Ol => {
+                out.children.push(Name::Ol);
+                out.ol.push(read_htmlol(r, child));
+            }
+            Name::Table => {
+                out.children.push(Name::Table);
+                out.table.push(read_htmltable(r, child));
+            }
+            Name::Br => {
+                out.children.push(Name::Br);
+                r.push_span(&mut out.br, child);
+            }
+            Name::Page => {
+                out.children.push(Name::Page);
+                r.push_span(&mut out.page, child);
+            }
+            Name::Image => {
+                out.children.push(Name::Image);
+                out.image.push(read_image(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -1520,16 +1614,46 @@ pub fn read_ftexttc(r: &mut Reader<'_>, node: NodeId) -> FTextTC {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::P => out.p.push(read_htmlptc(r, child)),
-            Name::Div => out.div.push(read_htmldivtc(r, child)),
-            Name::Span => out.span.push(read_htmlspan(r, child)),
-            Name::Ul => out.ul.push(read_htmlultc(r, child)),
-            Name::Ol => out.ol.push(read_htmloltc(r, child)),
-            Name::Table => out.table.push(read_htmltabletc(r, child)),
-            Name::Br => r.push_span(&mut out.br, child),
-            Name::Page => r.push_span(&mut out.page, child),
-            Name::Image => out.image.push(read_image(r, child)),
-            Name::TextComplement => out.text_complement.push(read_textcomplement(r, child)),
+            Name::P => {
+                out.children.push(Name::P);
+                out.p.push(read_htmlptc(r, child));
+            }
+            Name::Div => {
+                out.children.push(Name::Div);
+                out.div.push(read_htmldivtc(r, child));
+            }
+            Name::Span => {
+                out.children.push(Name::Span);
+                out.span.push(read_htmlspan(r, child));
+            }
+            Name::Ul => {
+                out.children.push(Name::Ul);
+                out.ul.push(read_htmlultc(r, child));
+            }
+            Name::Ol => {
+                out.children.push(Name::Ol);
+                out.ol.push(read_htmloltc(r, child));
+            }
+            Name::Table => {
+                out.children.push(Name::Table);
+                out.table.push(read_htmltabletc(r, child));
+            }
+            Name::Br => {
+                out.children.push(Name::Br);
+                r.push_span(&mut out.br, child);
+            }
+            Name::Page => {
+                out.children.push(Name::Page);
+                r.push_span(&mut out.page, child);
+            }
+            Name::Image => {
+                out.children.push(Name::Image);
+                out.image.push(read_image(r, child));
+            }
+            Name::TextComplement => {
+                out.children.push(Name::TextComplement);
+                out.text_complement.push(read_textcomplement(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -1701,8 +1825,14 @@ pub fn read_htmldiv(r: &mut Reader<'_>, node: NodeId) -> HtmlDiv {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::Span => out.span.push(read_htmlspan(r, child)),
-            Name::Br => r.push_span(&mut out.br, child),
+            Name::Span => {
+                out.children.push(Name::Span);
+                out.span.push(read_htmlspan(r, child));
+            }
+            Name::Br => {
+                out.children.push(Name::Br);
+                r.push_span(&mut out.br, child);
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -1726,9 +1856,18 @@ pub fn read_htmldivtc(r: &mut Reader<'_>, node: NodeId) -> HtmlDivTC {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::Span => out.span.push(read_htmlspan(r, child)),
-            Name::Br => r.push_span(&mut out.br, child),
-            Name::TextComplement => out.text_complement.push(read_textcomplement(r, child)),
+            Name::Span => {
+                out.children.push(Name::Span);
+                out.span.push(read_htmlspan(r, child));
+            }
+            Name::Br => {
+                out.children.push(Name::Br);
+                r.push_span(&mut out.br, child);
+            }
+            Name::TextComplement => {
+                out.children.push(Name::TextComplement);
+                out.text_complement.push(read_textcomplement(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -1752,12 +1891,30 @@ pub fn read_htmlli(r: &mut Reader<'_>, node: NodeId) -> HtmlLi {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::P => out.p.push(read_htmlp(r, child)),
-            Name::Div => out.div.push(read_htmldiv(r, child)),
-            Name::Span => out.span.push(read_htmlspan(r, child)),
-            Name::Br => r.push_span(&mut out.br, child),
-            Name::Ul => out.ul.push(read_htmlul(r, child)),
-            Name::Ol => out.ol.push(read_htmlol(r, child)),
+            Name::P => {
+                out.children.push(Name::P);
+                out.p.push(read_htmlp(r, child));
+            }
+            Name::Div => {
+                out.children.push(Name::Div);
+                out.div.push(read_htmldiv(r, child));
+            }
+            Name::Span => {
+                out.children.push(Name::Span);
+                out.span.push(read_htmlspan(r, child));
+            }
+            Name::Br => {
+                out.children.push(Name::Br);
+                r.push_span(&mut out.br, child);
+            }
+            Name::Ul => {
+                out.children.push(Name::Ul);
+                out.ul.push(read_htmlul(r, child));
+            }
+            Name::Ol => {
+                out.children.push(Name::Ol);
+                out.ol.push(read_htmlol(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -1781,13 +1938,34 @@ pub fn read_htmllitc(r: &mut Reader<'_>, node: NodeId) -> HtmlLiTC {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::P => out.p.push(read_htmlptc(r, child)),
-            Name::Div => out.div.push(read_htmldivtc(r, child)),
-            Name::Span => out.span.push(read_htmlspan(r, child)),
-            Name::Br => r.push_span(&mut out.br, child),
-            Name::Ul => out.ul.push(read_htmlultc(r, child)),
-            Name::Ol => out.ol.push(read_htmloltc(r, child)),
-            Name::TextComplement => out.text_complement.push(read_textcomplement(r, child)),
+            Name::P => {
+                out.children.push(Name::P);
+                out.p.push(read_htmlptc(r, child));
+            }
+            Name::Div => {
+                out.children.push(Name::Div);
+                out.div.push(read_htmldivtc(r, child));
+            }
+            Name::Span => {
+                out.children.push(Name::Span);
+                out.span.push(read_htmlspan(r, child));
+            }
+            Name::Br => {
+                out.children.push(Name::Br);
+                r.push_span(&mut out.br, child);
+            }
+            Name::Ul => {
+                out.children.push(Name::Ul);
+                out.ul.push(read_htmlultc(r, child));
+            }
+            Name::Ol => {
+                out.children.push(Name::Ol);
+                out.ol.push(read_htmloltc(r, child));
+            }
+            Name::TextComplement => {
+                out.children.push(Name::TextComplement);
+                out.text_complement.push(read_textcomplement(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -1812,9 +1990,18 @@ pub fn read_htmlol(r: &mut Reader<'_>, node: NodeId) -> HtmlOl {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::Li => out.li.push(read_htmlli(r, child)),
-            Name::Ul => out.ul.push(read_htmlul(r, child)),
-            Name::Ol => out.ol.push(read_htmlol(r, child)),
+            Name::Li => {
+                out.children.push(Name::Li);
+                out.li.push(read_htmlli(r, child));
+            }
+            Name::Ul => {
+                out.children.push(Name::Ul);
+                out.ul.push(read_htmlul(r, child));
+            }
+            Name::Ol => {
+                out.children.push(Name::Ol);
+                out.ol.push(read_htmlol(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -1863,9 +2050,18 @@ pub fn read_htmlp(r: &mut Reader<'_>, node: NodeId) -> HtmlP {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::Span => out.span.push(read_htmlspan(r, child)),
-            Name::Br => r.push_span(&mut out.br, child),
-            Name::ImageLower => out.image.push(read_image(r, child)),
+            Name::Span => {
+                out.children.push(Name::Span);
+                out.span.push(read_htmlspan(r, child));
+            }
+            Name::Br => {
+                out.children.push(Name::Br);
+                r.push_span(&mut out.br, child);
+            }
+            Name::ImageLower => {
+                out.children.push(Name::ImageLower);
+                out.image.push(read_image(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -1889,8 +2085,14 @@ pub fn read_htmlpmltext(r: &mut Reader<'_>, node: NodeId) -> HtmlPMLText {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::Span => out.span.push(read_htmlspan(r, child)),
-            Name::Br => r.push_span(&mut out.br, child),
+            Name::Span => {
+                out.children.push(Name::Span);
+                out.span.push(read_htmlspan(r, child));
+            }
+            Name::Br => {
+                out.children.push(Name::Br);
+                r.push_span(&mut out.br, child);
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -1914,10 +2116,22 @@ pub fn read_htmlptc(r: &mut Reader<'_>, node: NodeId) -> HtmlPTC {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::Span => out.span.push(read_htmlspan(r, child)),
-            Name::Br => r.push_span(&mut out.br, child),
-            Name::ImageLower => out.image.push(read_image(r, child)),
-            Name::TextComplement => out.text_complement.push(read_textcomplement(r, child)),
+            Name::Span => {
+                out.children.push(Name::Span);
+                out.span.push(read_htmlspan(r, child));
+            }
+            Name::Br => {
+                out.children.push(Name::Br);
+                r.push_span(&mut out.br, child);
+            }
+            Name::ImageLower => {
+                out.children.push(Name::ImageLower);
+                out.image.push(read_image(r, child));
+            }
+            Name::TextComplement => {
+                out.children.push(Name::TextComplement);
+                out.text_complement.push(read_textcomplement(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -2029,13 +2243,34 @@ pub fn read_htmltd(r: &mut Reader<'_>, node: NodeId) -> HtmlTd {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::P => out.p.push(read_htmlp(r, child)),
-            Name::Div => out.div.push(read_htmldiv(r, child)),
-            Name::Span => out.span.push(read_htmlspan(r, child)),
-            Name::Br => r.push_span(&mut out.br, child),
-            Name::Table => out.table.push(read_htmltable(r, child)),
-            Name::Ol => out.ol.push(read_htmlol(r, child)),
-            Name::Ul => out.ul.push(read_htmlul(r, child)),
+            Name::P => {
+                out.children.push(Name::P);
+                out.p.push(read_htmlp(r, child));
+            }
+            Name::Div => {
+                out.children.push(Name::Div);
+                out.div.push(read_htmldiv(r, child));
+            }
+            Name::Span => {
+                out.children.push(Name::Span);
+                out.span.push(read_htmlspan(r, child));
+            }
+            Name::Br => {
+                out.children.push(Name::Br);
+                r.push_span(&mut out.br, child);
+            }
+            Name::Table => {
+                out.children.push(Name::Table);
+                out.table.push(read_htmltable(r, child));
+            }
+            Name::Ol => {
+                out.children.push(Name::Ol);
+                out.ol.push(read_htmlol(r, child));
+            }
+            Name::Ul => {
+                out.children.push(Name::Ul);
+                out.ul.push(read_htmlul(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -2063,14 +2298,38 @@ pub fn read_htmltdtc(r: &mut Reader<'_>, node: NodeId) -> HtmlTdTC {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::P => out.p.push(read_htmlptc(r, child)),
-            Name::Div => out.div.push(read_htmldivtc(r, child)),
-            Name::Span => out.span.push(read_htmlspan(r, child)),
-            Name::Br => r.push_span(&mut out.br, child),
-            Name::Table => out.table.push(read_htmltabletc(r, child)),
-            Name::Ol => out.ol.push(read_htmloltc(r, child)),
-            Name::Ul => out.ul.push(read_htmlultc(r, child)),
-            Name::TextComplement => out.text_complement.push(read_textcomplement(r, child)),
+            Name::P => {
+                out.children.push(Name::P);
+                out.p.push(read_htmlptc(r, child));
+            }
+            Name::Div => {
+                out.children.push(Name::Div);
+                out.div.push(read_htmldivtc(r, child));
+            }
+            Name::Span => {
+                out.children.push(Name::Span);
+                out.span.push(read_htmlspan(r, child));
+            }
+            Name::Br => {
+                out.children.push(Name::Br);
+                r.push_span(&mut out.br, child);
+            }
+            Name::Table => {
+                out.children.push(Name::Table);
+                out.table.push(read_htmltabletc(r, child));
+            }
+            Name::Ol => {
+                out.children.push(Name::Ol);
+                out.ol.push(read_htmloltc(r, child));
+            }
+            Name::Ul => {
+                out.children.push(Name::Ul);
+                out.ul.push(read_htmlultc(r, child));
+            }
+            Name::TextComplement => {
+                out.children.push(Name::TextComplement);
+                out.text_complement.push(read_textcomplement(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -2096,13 +2355,34 @@ pub fn read_htmlth(r: &mut Reader<'_>, node: NodeId) -> HtmlTh {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::P => out.p.push(read_htmlp(r, child)),
-            Name::Div => out.div.push(read_htmldiv(r, child)),
-            Name::Span => out.span.push(read_htmlspan(r, child)),
-            Name::Br => r.push_span(&mut out.br, child),
-            Name::Table => out.table.push(read_htmltable(r, child)),
-            Name::Ul => out.ul.push(read_htmlul(r, child)),
-            Name::Ol => out.ol.push(read_htmlol(r, child)),
+            Name::P => {
+                out.children.push(Name::P);
+                out.p.push(read_htmlp(r, child));
+            }
+            Name::Div => {
+                out.children.push(Name::Div);
+                out.div.push(read_htmldiv(r, child));
+            }
+            Name::Span => {
+                out.children.push(Name::Span);
+                out.span.push(read_htmlspan(r, child));
+            }
+            Name::Br => {
+                out.children.push(Name::Br);
+                r.push_span(&mut out.br, child);
+            }
+            Name::Table => {
+                out.children.push(Name::Table);
+                out.table.push(read_htmltable(r, child));
+            }
+            Name::Ul => {
+                out.children.push(Name::Ul);
+                out.ul.push(read_htmlul(r, child));
+            }
+            Name::Ol => {
+                out.children.push(Name::Ol);
+                out.ol.push(read_htmlol(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -2128,8 +2408,14 @@ pub fn read_htmltr(r: &mut Reader<'_>, node: NodeId) -> HtmlTr {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::Th => out.th.push(read_htmlth(r, child)),
-            Name::Td => out.td.push(read_htmltd(r, child)),
+            Name::Th => {
+                out.children.push(Name::Th);
+                out.th.push(read_htmlth(r, child));
+            }
+            Name::Td => {
+                out.children.push(Name::Td);
+                out.td.push(read_htmltd(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -2155,8 +2441,14 @@ pub fn read_htmltrtc(r: &mut Reader<'_>, node: NodeId) -> HtmlTrTC {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::Th => out.th.push(read_htmlth(r, child)),
-            Name::Td => out.td.push(read_htmltdtc(r, child)),
+            Name::Th => {
+                out.children.push(Name::Th);
+                out.th.push(read_htmlth(r, child));
+            }
+            Name::Td => {
+                out.children.push(Name::Td);
+                out.td.push(read_htmltdtc(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -2180,9 +2472,18 @@ pub fn read_htmlul(r: &mut Reader<'_>, node: NodeId) -> HtmlUl {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::Li => out.li.push(read_htmlli(r, child)),
-            Name::Ul => out.ul.push(read_htmlul(r, child)),
-            Name::Ol => out.ol.push(read_htmlol(r, child)),
+            Name::Li => {
+                out.children.push(Name::Li);
+                out.li.push(read_htmlli(r, child));
+            }
+            Name::Ul => {
+                out.children.push(Name::Ul);
+                out.ul.push(read_htmlul(r, child));
+            }
+            Name::Ol => {
+                out.children.push(Name::Ol);
+                out.ol.push(read_htmlol(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -2306,37 +2607,91 @@ pub fn read_invoice(r: &mut Reader<'_>, node: NodeId) -> Invoice {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::DP => r.set_span(&mut out.dp, node, child),
-            Name::OWN => r.set_complex(&mut out.own, node, child, read_own),
-            Name::Requester => out.requester.push(read_requester(r, child)),
-            Name::CTR => r.set_complex(&mut out.ctr, node, child, read_ctr),
-            Name::CnstSite => out.cnst_site.push(read_cnstsite(r, child)),
-            Name::NotifSite => out.notif_site.push(read_notifsite(r, child)),
-            Name::AddText => out.add_text.push(read_addtext(r, child)),
-            Name::BoQ => r.set_complex(&mut out.boq, node, child, read_boq),
+            Name::DP => {
+                out.children.push(Name::DP);
+                r.set_span(&mut out.dp, node, child);
+            }
+            Name::OWN => {
+                out.children.push(Name::OWN);
+                r.set_complex(&mut out.own, node, child, read_own);
+            }
+            Name::Requester => {
+                out.children.push(Name::Requester);
+                out.requester.push(read_requester(r, child));
+            }
+            Name::CTR => {
+                out.children.push(Name::CTR);
+                r.set_complex(&mut out.ctr, node, child, read_ctr);
+            }
+            Name::CnstSite => {
+                out.children.push(Name::CnstSite);
+                out.cnst_site.push(read_cnstsite(r, child));
+            }
+            Name::NotifSite => {
+                out.children.push(Name::NotifSite);
+                out.notif_site.push(read_notifsite(r, child));
+            }
+            Name::AddText => {
+                out.children.push(Name::AddText);
+                out.add_text.push(read_addtext(r, child));
+            }
+            Name::BoQ => {
+                out.children.push(Name::BoQ);
+                r.set_complex(&mut out.boq, node, child, read_boq);
+            }
             Name::InvoiceHeader => {
-                r.set_complex(&mut out.invoice_header, node, child, read_invoiceheader)
+                out.children.push(Name::InvoiceHeader);
+                r.set_complex(&mut out.invoice_header, node, child, read_invoiceheader);
             }
             Name::InvoiceCreator => {
-                r.set_complex(&mut out.invoice_creator, node, child, read_invoicecreator)
+                out.children.push(Name::InvoiceCreator);
+                r.set_complex(&mut out.invoice_creator, node, child, read_invoicecreator);
             }
-            Name::InvoiceRecipient => r.set_complex(
-                &mut out.invoice_recipient,
-                node,
-                child,
-                read_invoicerecipient,
-            ),
-            Name::CheckNote => out.check_note.push(read_checknote(r, child)),
-            Name::BudgetDept => r.set_span(&mut out.budget_dept, node, child),
-            Name::BookingNo => r.set_span(&mut out.booking_no, node, child),
+            Name::InvoiceRecipient => {
+                out.children.push(Name::InvoiceRecipient);
+                r.set_complex(
+                    &mut out.invoice_recipient,
+                    node,
+                    child,
+                    read_invoicerecipient,
+                );
+            }
+            Name::CheckNote => {
+                out.children.push(Name::CheckNote);
+                out.check_note.push(read_checknote(r, child));
+            }
+            Name::BudgetDept => {
+                out.children.push(Name::BudgetDept);
+                r.set_span(&mut out.budget_dept, node, child);
+            }
+            Name::BookingNo => {
+                out.children.push(Name::BookingNo);
+                r.set_span(&mut out.booking_no, node, child);
+            }
             Name::QuantityDeterminationRemark => {
-                r.set_span(&mut out.quantity_determination_remark, node, child)
+                out.children.push(Name::QuantityDeterminationRemark);
+                r.set_span(&mut out.quantity_determination_remark, node, child);
             }
-            Name::InvoiceShare => out.invoice_share.push(read_invoiceshare(r, child)),
-            Name::Terms => out.terms.push(read_cashdiscount(r, child)),
-            Name::PaymentMade => out.payment_made.push(read_paymentmade(r, child)),
-            Name::InvoiceMadeOut => out.invoice_made_out.push(read_invoicemadeout(r, child)),
-            Name::TotalGross => r.set_decimal(&mut out.total_gross, node, child),
+            Name::InvoiceShare => {
+                out.children.push(Name::InvoiceShare);
+                out.invoice_share.push(read_invoiceshare(r, child));
+            }
+            Name::Terms => {
+                out.children.push(Name::Terms);
+                out.terms.push(read_cashdiscount(r, child));
+            }
+            Name::PaymentMade => {
+                out.children.push(Name::PaymentMade);
+                out.payment_made.push(read_paymentmade(r, child));
+            }
+            Name::InvoiceMadeOut => {
+                out.children.push(Name::InvoiceMadeOut);
+                out.invoice_made_out.push(read_invoicemadeout(r, child));
+            }
+            Name::TotalGross => {
+                out.children.push(Name::TotalGross);
+                r.set_decimal(&mut out.total_gross, node, child);
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -2587,11 +2942,26 @@ pub fn read_itemlist(r: &mut Reader<'_>, node: NodeId) -> Itemlist {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::Remark => out.remark.push(read_remark(r, child)),
-            Name::PerfDescr => out.perf_descr.push(read_perfdescr(r, child)),
-            Name::Item => out.item.push(read_item(r, child)),
-            Name::MarkupItem => out.markup_item.push(read_markupitem(r, child)),
-            Name::MastAgrItems => out.mast_agr_items.push(read_mastagritems(r, child)),
+            Name::Remark => {
+                out.children.push(Name::Remark);
+                out.remark.push(read_remark(r, child));
+            }
+            Name::PerfDescr => {
+                out.children.push(Name::PerfDescr);
+                out.perf_descr.push(read_perfdescr(r, child));
+            }
+            Name::Item => {
+                out.children.push(Name::Item);
+                out.item.push(read_item(r, child));
+            }
+            Name::MarkupItem => {
+                out.children.push(Name::MarkupItem);
+                out.markup_item.push(read_markupitem(r, child));
+            }
+            Name::MastAgrItems => {
+                out.children.push(Name::MastAgrItems);
+                out.mast_agr_items.push(read_mastagritems(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -2678,10 +3048,22 @@ pub fn read_mltext(r: &mut Reader<'_>, node: NodeId) -> MLText {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::P => out.p.push(read_htmlpmltext(r, child)),
-            Name::Div => out.div.push(read_htmldiv(r, child)),
-            Name::Span => out.span.push(read_htmlspan(r, child)),
-            Name::Br => r.push_span(&mut out.br, child),
+            Name::P => {
+                out.children.push(Name::P);
+                out.p.push(read_htmlpmltext(r, child));
+            }
+            Name::Div => {
+                out.children.push(Name::Div);
+                out.div.push(read_htmldiv(r, child));
+            }
+            Name::Span => {
+                out.children.push(Name::Span);
+                out.span.push(read_htmlspan(r, child));
+            }
+            Name::Br => {
+                out.children.push(Name::Br);
+                r.push_span(&mut out.br, child);
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -2875,10 +3257,22 @@ pub fn read_mastagritems(r: &mut Reader<'_>, node: NodeId) -> MastAgrItems {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::HourItem => out.hour_item.push(read_houritem(r, child)),
-            Name::MaterialItem => out.material_item.push(read_materialitem(r, child)),
-            Name::MarkupItemOWN => out.markup_item_own.push(read_markupitemown(r, child)),
-            Name::MarkupItemCTR => out.markup_item_ctr.push(read_markupitemctr(r, child)),
+            Name::HourItem => {
+                out.children.push(Name::HourItem);
+                out.hour_item.push(read_houritem(r, child));
+            }
+            Name::MaterialItem => {
+                out.children.push(Name::MaterialItem);
+                out.material_item.push(read_materialitem(r, child));
+            }
+            Name::MarkupItemOWN => {
+                out.children.push(Name::MarkupItemOWN);
+                out.markup_item_own.push(read_markupitemown(r, child));
+            }
+            Name::MarkupItemCTR => {
+                out.children.push(Name::MarkupItemCTR);
+                out.markup_item_ctr.push(read_markupitemctr(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -3168,9 +3562,18 @@ pub fn read_outltxt(r: &mut Reader<'_>, node: NodeId) -> OutlTxt {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::Style => r.set_complex(&mut out.style, node, child, read_style),
-            Name::TextOutlTxt => out.text_outl_txt.push(read_mltext(r, child)),
-            Name::TextComplement => out.text_complement.push(read_textcomplement(r, child)),
+            Name::Style => {
+                out.children.push(Name::Style);
+                r.set_complex(&mut out.style, node, child, read_style);
+            }
+            Name::TextOutlTxt => {
+                out.children.push(Name::TextOutlTxt);
+                out.text_outl_txt.push(read_mltext(r, child));
+            }
+            Name::TextComplement => {
+                out.children.push(Name::TextComplement);
+                out.text_complement.push(read_textcomplement(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -3708,22 +4111,42 @@ pub fn read_refgroup(r: &mut Reader<'_>, node: NodeId) -> RefGroup {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::Title => r.set_span(&mut out.title, node, child),
-            Name::BoQItemRef => out.boq_item_ref.push(read_boqitemref(r, child)),
-            Name::BoQCtgyRef => out.boq_ctgy_ref.push(read_boqctgyref(r, child)),
-            Name::CostElementRef => out.cost_element_ref.push(read_costelementref(r, child)),
-            Name::CategoryElementRef => out
-                .category_element_ref
-                .push(read_categoryelementref(r, child)),
-            Name::DimensionElementRef => out
-                .dimension_element_ref
-                .push(read_dimensionelementref(r, child)),
-            Name::ConsortiumMemberRef => out
-                .consortium_member_ref
-                .push(read_consortiummemberref(r, child)),
-            Name::ProjectBoQItemRef => out
-                .project_boq_item_ref
-                .push(read_projectboqitemref(r, child)),
+            Name::Title => {
+                out.children.push(Name::Title);
+                r.set_span(&mut out.title, node, child);
+            }
+            Name::BoQItemRef => {
+                out.children.push(Name::BoQItemRef);
+                out.boq_item_ref.push(read_boqitemref(r, child));
+            }
+            Name::BoQCtgyRef => {
+                out.children.push(Name::BoQCtgyRef);
+                out.boq_ctgy_ref.push(read_boqctgyref(r, child));
+            }
+            Name::CostElementRef => {
+                out.children.push(Name::CostElementRef);
+                out.cost_element_ref.push(read_costelementref(r, child));
+            }
+            Name::CategoryElementRef => {
+                out.children.push(Name::CategoryElementRef);
+                out.category_element_ref
+                    .push(read_categoryelementref(r, child));
+            }
+            Name::DimensionElementRef => {
+                out.children.push(Name::DimensionElementRef);
+                out.dimension_element_ref
+                    .push(read_dimensionelementref(r, child));
+            }
+            Name::ConsortiumMemberRef => {
+                out.children.push(Name::ConsortiumMemberRef);
+                out.consortium_member_ref
+                    .push(read_consortiummemberref(r, child));
+            }
+            Name::ProjectBoQItemRef => {
+                out.children.push(Name::ProjectBoQItemRef);
+                out.project_boq_item_ref
+                    .push(read_projectboqitemref(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -3759,12 +4182,30 @@ pub fn read_refitems(r: &mut Reader<'_>, node: NodeId) -> RefItems {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::Customer => out.customer.push(read_refitemscustomer(r, child)),
-            Name::CustomerSubNo => r.push_span(&mut out.customer_sub_no, child),
-            Name::CustomerCtlgAssign => out.customer_ctlg_assign.push(read_ctlgassign(r, child)),
-            Name::Supplier => out.supplier.push(read_refitemssupplier(r, child)),
-            Name::SupplierSubNo => r.push_span(&mut out.supplier_sub_no, child),
-            Name::SupplierCtlgAssign => out.supplier_ctlg_assign.push(read_ctlgassign(r, child)),
+            Name::Customer => {
+                out.children.push(Name::Customer);
+                out.customer.push(read_refitemscustomer(r, child));
+            }
+            Name::CustomerSubNo => {
+                out.children.push(Name::CustomerSubNo);
+                r.push_span(&mut out.customer_sub_no, child);
+            }
+            Name::CustomerCtlgAssign => {
+                out.children.push(Name::CustomerCtlgAssign);
+                out.customer_ctlg_assign.push(read_ctlgassign(r, child));
+            }
+            Name::Supplier => {
+                out.children.push(Name::Supplier);
+                out.supplier.push(read_refitemssupplier(r, child));
+            }
+            Name::SupplierSubNo => {
+                out.children.push(Name::SupplierSubNo);
+                r.push_span(&mut out.supplier_sub_no, child);
+            }
+            Name::SupplierCtlgAssign => {
+                out.children.push(Name::SupplierCtlgAssign);
+                out.supplier_ctlg_assign.push(read_ctlgassign(r, child));
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
@@ -4386,13 +4827,34 @@ pub fn read_wgchange(r: &mut Reader<'_>, node: NodeId) -> WgChange {
     let mut child = r.first_child(node);
     while child != crate::tape::NONE {
         match r.name(child) {
-            Name::LblRefWage => r.set_span(&mut out.lbl_ref_wage, node, child),
-            Name::RedPriceComp => r.set_decimal(&mut out.red_price_comp, node, child),
-            Name::RefBoQ => out.ref_boq.push(read_refboq(r, child)),
-            Name::RefLotNo => out.ref_lot_no.push(read_refboqctgy(r, child)),
-            Name::RefLotGrNo => out.ref_lot_gr_no.push(read_reflotgrp(r, child)),
-            Name::RefItem => out.ref_item.push(read_refitem(r, child)),
-            Name::WgChangeRate => r.push_decimal(&mut out.wg_change_rate, child),
+            Name::LblRefWage => {
+                out.children.push(Name::LblRefWage);
+                r.set_span(&mut out.lbl_ref_wage, node, child);
+            }
+            Name::RedPriceComp => {
+                out.children.push(Name::RedPriceComp);
+                r.set_decimal(&mut out.red_price_comp, node, child);
+            }
+            Name::RefBoQ => {
+                out.children.push(Name::RefBoQ);
+                out.ref_boq.push(read_refboq(r, child));
+            }
+            Name::RefLotNo => {
+                out.children.push(Name::RefLotNo);
+                out.ref_lot_no.push(read_refboqctgy(r, child));
+            }
+            Name::RefLotGrNo => {
+                out.children.push(Name::RefLotGrNo);
+                out.ref_lot_gr_no.push(read_reflotgrp(r, child));
+            }
+            Name::RefItem => {
+                out.children.push(Name::RefItem);
+                out.ref_item.push(read_refitem(r, child));
+            }
+            Name::WgChangeRate => {
+                out.children.push(Name::WgChangeRate);
+                r.push_decimal(&mut out.wg_change_rate, child);
+            }
             _ => r.unexpected(&mut out.extra, node, child),
         }
         child = r.next(child);
