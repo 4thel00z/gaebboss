@@ -1,0 +1,17 @@
+name: python
+on:
+  push:
+    branches: [main, master]
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: dtolnay/rust-toolchain@stable
+      - uses: Swatinem/rust-cache@v2
+      - uses: astral-sh/setup-uv@v5
+      - run: uv venv --python 3.12 .venv
+      - run: uv pip install --python .venv/bin/python maturin pytest
+      - run: VIRTUAL_ENV=$PWD/.venv .venv/bin/maturin develop --uv --release
+      - run: .venv/bin/python -m pytest tests/python -q

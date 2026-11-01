@@ -1,0 +1,31 @@
+# Python
+
+```bash
+pip install gaebboss
+```
+
+`gaebboss.Document(path)` or `gaebboss.Document(data=bytes, name="x.X83")`
+parses with the GIL released. Everything it returns is a plain object:
+`items()`, `categories()`, `markup_items()`, `boq`, `project`, `warnings`,
+`validate()`, `validate_against(tender)`, `to_json()`, `write(...)` and
+`write_report(...)`. Every GAEB number is a `decimal.Decimal` built from its
+exact text; passing a float to a bid raises `GaebError`.
+
+```python
+from decimal import Decimal
+import gaebboss
+
+tender = gaebboss.Document("tender.X83")
+bid = gaebboss.Bid.from_tender(tender, {"name1": "Bau GmbH", "street": "Weg 1", "pcode": "12345", "city": "Berlin"})
+for item in tender.items():
+    if item.kind == "FreeQuantity":
+        bid.free_quantity(item.id, Decimal("10.000"))
+    bid.price(item.id, Decimal("12.50"))
+bid.vat_percent(Decimal("19"))
+doc = bid.finish()
+assert [f for f in doc.validate() if f.severity == "Error"] == []
+open("bid.X84", "wb").write(doc.write())
+```
+
+Documents are immutable and can be shared between threads; parsing sixteen
+copies in a thread pool scales with cores.

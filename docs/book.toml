@@ -1,0 +1,13 @@
+[book]
+title = "gaebboss"
+description = "GAEB DA XML in pure Rust: read tenders and bids, validate, write schema-valid X84, price a tender."
+authors = ["4thel00z"]
+language = "en"
+src = "src"
+
+[build]
+build-dir = "book"
+
+[output.html]
+default-theme = "light"
+git-repository-url = "https://github.com/4thel00z/gaebboss"
