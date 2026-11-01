@@ -281,7 +281,7 @@ impl<'a> Reader<'a> {
         *slot = Some(Box::new(read(self, child)));
     }
 
-    pub fn set_attr_span(&mut self, slot: &mut Option<Span>, _node: NodeId, attr: Attr) {
+    pub fn set_attr_span(&mut self, slot: &mut Option<Span>, attr: Attr) {
         *slot = Some(attr.value);
     }
 

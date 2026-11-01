@@ -7,7 +7,7 @@ texts, bids, validation, JSON) also interprets.
 
 | elements | read and written | interpreted by the semantic layer |
 |---|---|---|
-| 525 | 525 | 110 |
+| 525 | 525 | 112 |
 
 | element | in types | semantic | restricted in phases |
 |---|---|---|---|
@@ -169,7 +169,7 @@ texts, bids, validation, JSON) also interprets.
 | `DP` | `tgAward`, `tgElementalCosting`, `tgInvoice`, `tgOrder`, `tgQtyDetermination`, `tgSC_Evaluation` | yes | X80 X83 X83Z X84 X84Z X85 X86 X86ZE X86ZR X87 X89 X89B |
 | `DPNo` | `tgCTR`, `tgOWN` |  | X84 X86 X87 |
 | `Data` | `Attachment` |  |  |
-| `Date` | `tgBoQInfo`, `tgDateOfInformation`, `tgECInfo`, `tgGAEBInfo`, `tgGAEBInfoQD` |  | X50.2 X51.2 X52 X80 X81 X82 X83 X83Z X84Z X85 X86 X86ZE X86ZR X87 X89 X89B |
+| `Date` | `tgBoQInfo`, `tgDateOfInformation`, `tgECInfo`, `tgGAEBInfo`, `tgGAEBInfoQD` | yes | X50.2 X51.2 X52 X80 X81 X82 X83 X83Z X84Z X85 X86 X86ZE X86ZR X87 X89 X89B |
 | `DateOfInformation` | `tgECInfo` |  | X50.2 X51.2 |
 | `DateOfPrice` | `tgECInfo` |  | X50.2 X51.2 |
 | `DateValue` | `tgCatalogRef` |  |  |
@@ -430,7 +430,7 @@ texts, bids, validation, JSON) also interprets.
 | `Street` | `tgAddress` | yes |  |
 | `Style` | `tgBoQText`, `tgOutlTxt` | yes | X83Z X84 X86ZR |
 | `SubDNo` | `tgSubDescr` |  | X52 X80 X81 X82 X83 X83Z X84 X85 X86 X86ZR X87 |
-| `SubDescr` | `tgItem` |  | X52 X80 X81 X82 X83 X84 X85 X86 X87 X89 X89B |
+| `SubDescr` | `tgItem` | yes | X52 X80 X81 X82 X83 X84 X85 X86 X87 X89 X89B |
 | `SubQty` | `tgMarkupSubQty`, `tgPriceModification` |  |  |
 | `SubmLoc` | `tgAwardInfo` |  | X80 X83 X83Z |
 | `SubmissionComment` | `tgDescription`, `tgPerfDescription` |  |  |

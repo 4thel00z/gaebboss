@@ -11,7 +11,7 @@ F=tests/fixtures/official
 printf 'name1 = "Bau GmbH"\nstreet = "Weg 1"\npcode = "12345"\ncity = "Berlin"\nvat_percent = "19"\n' > "$out/bidder.toml"
 for tender in "$F/3.3/bvbs_bauausfuehrung.x83" "$F/3.1/Musterdatei_3.1_2008-001.X83" "$F/3.1/Musterdatei_3.1_2008-004.X83"; do
   base=$(basename "$tender" | tr ' ' '_')
-  "$G" items "$tender" --tsv | tail -n +2 | cut -f1 | awk 'BEGIN{print "oz,up"} {if (NR%9==5) print $0",-"; else print $0","NR".25"}' > "$out/$base.prices.csv"
+  "$G" items "$tender" --tsv | tail -n +2 | cut -f1,3 | awk -F'\t' 'BEGIN{print "oz,up,qty"} {if (NR%9==5) print $1",-"; else if ($2=="FreeQuantity") print $1","NR".25,1.000"; else print $1","NR".25"}' > "$out/$base.prices.csv"
   "$G" bid "$tender" --prices "$out/$base.prices.csv" --bidder "$out/bidder.toml" -o "$out/$base.bid.X84"
 done
 "$G" roundtrip "$F/3.3/bvbs_bauausfuehrung.x83" -o "$out/bvbs.rt.X83"

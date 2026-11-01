@@ -83,9 +83,13 @@ fn emit_reader(
                 Scalar::Bool => "set_attr_bool",
                 Scalar::Enum(_) => "set_attr_enum",
             };
+            let args = match setter {
+                "set_attr_span" => "attr",
+                _ => "node, attr",
+            };
             let _ = writeln!(
                 out,
-                "            Name::{} => r.{setter}(&mut out.{}, node, attr),",
+                "            Name::{} => r.{setter}(&mut out.{}, {args}),",
                 attribute(&a.attribute),
                 a.name
             );

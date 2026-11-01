@@ -125,3 +125,27 @@ fn oz_overflow() {
     let doc = read("oz-overflow.x83");
     assert!(finds(&doc, FindingCode::OzTooLong));
 }
+
+#[test]
+fn deeply_nested_documents_fail_cleanly() {
+    let mut xml = String::from(
+        "<GAEB xmlns=\"http://www.gaeb.de/GAEB_DA_XML/DA83/3.3\"><Award><DP>83</DP><BoQ ID=\"b\"><BoQBody>",
+    );
+    for _ in 0..5000 {
+        xml.push_str("<BoQCtgy ID=\"c\" RNoPart=\"1\"><BoQBody>");
+    }
+    assert!(Document::parse(xml.as_bytes()).is_err());
+    let mut text = String::from(
+        "<GAEB xmlns=\"http://www.gaeb.de/GAEB_DA_XML/DA83/3.3\"><Award><DP>83</DP><BoQ ID=\"b\"><BoQBody><Itemlist><Item ID=\"i\" RNoPart=\"1\"><Description><CompleteText><DetailTxt><Text>",
+    );
+    for _ in 0..100 {
+        text.push_str("<ul><li>");
+    }
+    text.push_str("<span>deep</span>");
+    for _ in 0..100 {
+        text.push_str("</li></ul>");
+    }
+    text.push_str("</Text></DetailTxt></CompleteText></Description></Item></Itemlist></BoQBody></BoQ></Award></GAEB>");
+    let doc = Document::parse(text.as_bytes()).unwrap();
+    assert!(doc.items().next().unwrap().long_text().contains("deep"));
+}

@@ -6,7 +6,7 @@ use std::collections::HashMap;
 
 use crate::Document;
 use crate::decimal::Decimal;
-use crate::generated::profile::{Restriction, restrictions};
+use crate::generated::profile::{Restriction, base_restrictions, restrictions};
 use crate::generated::write::write_gaeb;
 use crate::name::Name;
 use crate::read::EnumValue;
@@ -90,7 +90,8 @@ impl Document {
                 phase: opts.phase,
             });
         };
-        let mut w = Writer::new(self, opts, table);
+        let base = base_restrictions(opts.version).unwrap_or(&[]);
+        let mut w = Writer::new(self, opts, table, base);
         w.out
             .extend_from_slice(b"<?xml version=\"1.0\" encoding=\"UTF-8\"?>");
         write_gaeb(&mut w, &self.gaeb, "GAEB")?;
@@ -110,6 +111,7 @@ pub struct Writer<'a> {
     doc: &'a Document,
     opts: &'a WriteOptions,
     table: &'static [(&'static str, Restriction)],
+    base: &'static [(&'static str, Restriction)],
     cache: HashMap<&'static str, Option<&'static Restriction>>,
     pub out: Vec<u8>,
     depth: usize,
@@ -128,11 +130,13 @@ impl<'a> Writer<'a> {
         doc: &'a Document,
         opts: &'a WriteOptions,
         table: &'static [(&'static str, Restriction)],
+        base: &'static [(&'static str, Restriction)],
     ) -> Writer<'a> {
         Writer {
             doc,
             opts,
             table,
+            base,
             cache: HashMap::new(),
             out: Vec::with_capacity(doc.bytes().len()),
             depth: 0,
@@ -172,6 +176,7 @@ impl<'a> Writer<'a> {
         let found = self
             .table
             .iter()
+            .chain(self.base.iter())
             .find(|(name, _)| *name == type_name)
             .map(|(_, r)| r);
         self.cache.insert(type_name, found);
@@ -180,6 +185,13 @@ impl<'a> Writer<'a> {
 
     pub fn required(&self, restriction: Option<&'static Restriction>) -> &'static [Name] {
         restriction.map_or(&[], |r| r.required)
+    }
+
+    pub fn required_any(
+        &self,
+        restriction: Option<&'static Restriction>,
+    ) -> &'static [&'static [Name]] {
+        restriction.map_or(&[], |r| r.required_any)
     }
 
     pub fn allowed(&self, restriction: Option<&'static Restriction>, element: Name) -> bool {
@@ -368,7 +380,9 @@ impl<'a> Writer<'a> {
     }
 
     /// Unknown children copied verbatim when the version stays the same,
-    /// otherwise left out and reported.
+    /// otherwise left out and reported. A prefixed element takes the
+    /// namespace declarations it needs along, since the source root that
+    /// declared them is not copied.
     pub fn extra(&mut self, nodes: &[NodeId], type_name: &'static str) {
         for node in nodes {
             let Some(n) = self.doc.tape().node(*node) else {
@@ -382,9 +396,64 @@ impl<'a> Writer<'a> {
             self.mark_child();
             self.newline();
             let outer = n.outer();
-            self.out
-                .extend_from_slice(&self.doc.bytes()[outer.start()..outer.end()]);
+            let bytes = &self.doc.bytes()[outer.start()..outer.end()];
+            let declarations = self.namespace_declarations(bytes);
+            if declarations.is_empty() {
+                self.out.extend_from_slice(bytes);
+                continue;
+            }
+            let name_end = bytes
+                .iter()
+                .position(|b| matches!(b, b' ' | b'\t' | b'\r' | b'\n' | b'/' | b'>'))
+                .unwrap_or(bytes.len());
+            self.out.extend_from_slice(&bytes[..name_end]);
+            for (prefix, uri) in declarations {
+                self.out.extend_from_slice(b" xmlns:");
+                self.out.extend_from_slice(prefix.as_bytes());
+                self.out.extend_from_slice(b"=\"");
+                escape_into(&uri, true, &mut self.out);
+                self.out.push(b'"');
+            }
+            self.out.extend_from_slice(&bytes[name_end..]);
         }
+    }
+
+    /// The `xmlns:prefix` declarations an element's raw bytes rely on but do
+    /// not carry themselves, looked up on the source root.
+    fn namespace_declarations(&self, bytes: &[u8]) -> Vec<(String, String)> {
+        let mut prefixes: Vec<String> = Vec::new();
+        let mut at = 0;
+        while let Some(lt) = memchr::memchr(b'<', &bytes[at..]) {
+            let start = at + lt + 1;
+            let name: Vec<u8> = bytes[start..]
+                .iter()
+                .take_while(|b| !matches!(b, b' ' | b'\t' | b'\r' | b'\n' | b'/' | b'>'))
+                .copied()
+                .collect();
+            let tag = !name.starts_with(b"/") && !name.starts_with(b"!") && !name.starts_with(b"?");
+            if tag && let Some(colon) = name.iter().position(|b| *b == b':') {
+                let prefix = String::from_utf8_lossy(&name[..colon]).to_string();
+                if !prefixes.contains(&prefix) {
+                    prefixes.push(prefix);
+                }
+            }
+            at = start;
+        }
+        let tape = self.doc.tape();
+        let mut out = Vec::new();
+        for prefix in prefixes {
+            let needle = format!("xmlns:{prefix}=");
+            if bytes.windows(needle.len()).any(|w| w == needle.as_bytes()) {
+                continue;
+            }
+            let declared = tape
+                .attrs(tape.root)
+                .iter()
+                .find(|a| self.doc.str(a.raw_name) == format!("xmlns:{prefix}"));
+            let Some(attr) = declared else { continue };
+            out.push((prefix, self.doc.str(attr.value).to_string()));
+        }
+        out
     }
 }
 

@@ -14,6 +14,8 @@ pub enum Error {
     Io(#[from] std::io::Error),
     #[error("encoding: {0}")]
     Encoding(String),
+    #[error("elements nested deeper than {limit} levels at byte {offset}")]
+    NestingTooDeep { offset: usize, limit: usize },
 }
 
 pub type Result<T> = std::result::Result<T, Error>;

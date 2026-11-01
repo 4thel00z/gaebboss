@@ -329,3 +329,72 @@ fn every_corpus_file_roundtrips() {
         2.0 * bytes as f64 / 1e6 / secs
     );
 }
+
+#[test]
+fn prefixed_vendor_element_keeps_its_namespace_declaration() {
+    let input = b"<GAEB xmlns=\"http://www.gaeb.de/GAEB_DA_XML/DA83/3.3\" xmlns:V=\"urn:vendor\"><GAEBInfo><Version>3.3</Version><VersDate>2021-05</VersDate><Date>2026-01-01</Date></GAEBInfo><Award><DP>83</DP><BoQ ID=\"b\"><BoQInfo><Name>x</Name><LblBoQ>T</LblBoQ><OutlCompl>AllTxt</OutlCompl><BoQBkdn><Type>Item</Type><Length>4</Length><Num>Yes</Num></BoQBkdn></BoQInfo><BoQBody><Itemlist><Item ID=\"i1\" RNoPart=\"1\"><Qty>1.000</Qty><V:Codetext a=\"1\">v</V:Codetext><QU>m</QU></Item></Itemlist></BoQBody></BoQ></Award></GAEB>";
+    let doc = Document::parse(input).unwrap();
+    let out = String::from_utf8(doc.write(&same_target(&doc)).unwrap()).unwrap();
+    assert!(
+        out.contains("<V:Codetext xmlns:V=\"urn:vendor\" a=\"1\">v</V:Codetext>"),
+        "{out}"
+    );
+    assert!(Document::parse(out.as_bytes()).is_ok());
+}
+
+#[test]
+fn a_description_without_complete_text_is_missing_in_x84() {
+    let input = b"<GAEB xmlns=\"http://www.gaeb.de/GAEB_DA_XML/DA84/3.3\"><GAEBInfo><Version>3.3</Version><VersDate>2021-05</VersDate><Date>2026-01-01</Date></GAEBInfo><Award><DP>84</DP><CTR><Address><Name1>B</Name1><Street>s</Street><PCode>1</PCode><City>c</City></Address></CTR><BoQ ID=\"b\"><BoQInfo><Name>x</Name><BoQBkdn><Type>Item</Type><Length>4</Length><Num>Yes</Num></BoQBkdn><Totals><Total>0.00</Total></Totals></BoQInfo><BoQBody><Itemlist><Item ID=\"i1\" RNoPart=\"1\"><UP>1.000</UP><IT>0.00</IT><Description><OutlineText><OutlTxt><TextOutlTxt><p><span>k</span></p></TextOutlTxt></OutlTxt></OutlineText></Description></Item></Itemlist></BoQBody></BoQ></Award></GAEB>";
+    let doc = Document::parse(input).unwrap();
+    let (_, report) = doc.write_with_report(&same_target(&doc)).unwrap();
+    assert!(
+        report
+            .missing
+            .iter()
+            .any(|m| m.type_name == "Description" && m.element == Name::CompleteText),
+        "{:?}",
+        report.missing
+    );
+    let strict = WriteOptions {
+        strict: true,
+        ..same_target(&doc)
+    };
+    assert!(matches!(
+        doc.write(&strict),
+        Err(WriteError::MissingRequired {
+            type_name: "Description",
+            ..
+        })
+    ));
+}
+
+#[test]
+fn lib_level_required_elements_are_enforced() {
+    let input = b"<GAEB xmlns=\"http://www.gaeb.de/GAEB_DA_XML/DA83/3.3\"><GAEBInfo><Version>3.3</Version><VersDate>2021-05</VersDate></GAEBInfo><Award><DP>83</DP><OWN><Address><Name1>Owner</Name1></Address></OWN><BoQ ID=\"b\"><BoQInfo><Name>x</Name><LblBoQ>T</LblBoQ><OutlCompl>AllTxt</OutlCompl><BoQBkdn><Type>Item</Type><Length>4</Length><Num>Yes</Num></BoQBkdn></BoQInfo><BoQBody><Itemlist><Item ID=\"i1\" RNoPart=\"1\"><Qty>1.000</Qty><QU>m</QU></Item></Itemlist></BoQBody></BoQ></Award></GAEB>";
+    let doc = Document::parse(input).unwrap();
+    let (_, report) = doc.write_with_report(&same_target(&doc)).unwrap();
+    assert!(
+        report
+            .missing
+            .iter()
+            .any(|m| m.type_name == "GAEBInfo" && m.element == Name::Date),
+        "{:?}",
+        report.missing
+    );
+    assert!(
+        report
+            .missing
+            .iter()
+            .any(|m| m.type_name == "Address" && m.element == Name::Street),
+        "{:?}",
+        report.missing
+    );
+    let errors: Vec<_> = gaebboss_core::validate::validate(&doc)
+        .into_iter()
+        .filter(|f| f.code == gaebboss_core::validate::FindingCode::MissingRequired)
+        .collect();
+    assert!(
+        errors.iter().any(|f| f.message.contains("Date")),
+        "{errors:?}"
+    );
+}

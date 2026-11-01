@@ -412,13 +412,25 @@ struct PriceRow {
 
 fn read_prices(path: &Path) -> Result<Vec<PriceRow>, String> {
     let text = std::fs::read_to_string(path).map_err(|e| format!("{}: {e}", path.display()))?;
+    let delimiter =
+        text.lines().next().map(
+            |header| match (header.contains(';'), header.contains('\t')) {
+                (true, _) => ';',
+                (false, true) => '\t',
+                (false, false) => ',',
+            },
+        );
+    let Some(delimiter) = delimiter else {
+        return Ok(Vec::new());
+    };
     let mut rows = Vec::new();
     for (i, line) in text.lines().enumerate() {
         let line = line.trim();
-        if line.is_empty() || (i == 0 && (line.starts_with("oz") || line.starts_with("id"))) {
+        let lower = line.to_ascii_lowercase();
+        if line.is_empty() || (i == 0 && (lower.starts_with("oz") || lower.starts_with("id"))) {
             continue;
         }
-        let fields: Vec<&str> = line.split([',', ';', '\t']).map(str::trim).collect();
+        let fields: Vec<&str> = line.split(delimiter).map(str::trim).collect();
         let key = fields.first().copied().unwrap_or_default().to_string();
         let up = match fields.get(1).copied().unwrap_or("-") {
             "-" | "" => None,

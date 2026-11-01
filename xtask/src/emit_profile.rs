@@ -1,12 +1,12 @@
 //! Emits `generated/profile.rs`: per (version, phase) the elements each
-//! type may and must carry, from the phase schemas' redefinitions.
+//! type may and must carry, from the phase schemas' redefinitions, and per
+//! version what the library itself requires.
 
 use std::collections::BTreeSet;
 use std::fmt::Write as _;
 
-use crate::emit_names::variants;
 use crate::merge::{Model, rust_type_name};
-use crate::schema::{Schema, SchemaVersion};
+use crate::schema::{Restriction, Schema, SchemaVersion, base_restriction};
 
 pub fn emit(
     schemas: &[Schema],
@@ -15,7 +15,7 @@ pub fn emit(
     phases: &[String],
     sources: &str,
 ) -> String {
-    let element_variants = variants(element_names, "");
+    let element_variants = crate::emit_names::variants(element_names, "");
     let variant = |name: &str| -> Option<String> {
         element_names
             .iter()
@@ -28,6 +28,19 @@ pub fn emit(
             .map(|v| format!("Name::{v}"))
             .collect::<Vec<_>>()
             .join(", ")
+    };
+    let literal = |r: &Restriction| -> String {
+        let groups = r
+            .required_any
+            .iter()
+            .map(|g| format!("&[{}]", names(g)))
+            .collect::<Vec<_>>()
+            .join(", ");
+        format!(
+            "Restriction {{ allowed: &[{}], required: &[{}], required_any: &[{groups}] }}",
+            names(&r.allowed),
+            names(&r.required)
+        )
     };
     let mut out = String::new();
     let _ = writeln!(
@@ -43,14 +56,31 @@ pub fn emit(
     let _ = writeln!(out, "pub struct Restriction {{");
     let _ = writeln!(out, "    pub allowed: &'static [Name],");
     let _ = writeln!(out, "    pub required: &'static [Name],");
+    let _ = writeln!(
+        out,
+        "    /// Groups of which at least one element must be present."
+    );
+    let _ = writeln!(out, "    pub required_any: &'static [&'static [Name]],");
     let _ = writeln!(out, "}}\n");
     let mut arms = Vec::new();
+    let mut bases = Vec::new();
     for schema in schemas {
         let version = match schema.version {
             SchemaVersion::V31 => continue,
             SchemaVersion::V32 => "V32",
             SchemaVersion::V33 => "V33",
         };
+        let base = format!("BASE_{version}");
+        let _ = writeln!(out, "static {base}: &[(&str, Restriction)] = &[");
+        for ty in schema.types.values().chain(schema.extra_types.values()) {
+            let rust = rust_type_name(&ty.name);
+            if !model.types.contains_key(&rust) {
+                continue;
+            }
+            let _ = writeln!(out, "    (\"{rust}\", {}),", literal(&base_restriction(ty)));
+        }
+        let _ = writeln!(out, "];\n");
+        bases.push(format!("        Version::{version} => Some({base}),"));
         for (code, profile) in &schema.profiles {
             if !phases.contains(code) {
                 continue;
@@ -65,12 +95,7 @@ pub fn emit(
                     continue;
                 }
                 emitted.push(rust.clone());
-                let _ = writeln!(
-                    out,
-                    "    (\"{rust}\", Restriction {{ allowed: &[{}], required: &[{}] }}),",
-                    names(&restriction.allowed),
-                    names(&restriction.required)
-                );
+                let _ = writeln!(out, "    (\"{rust}\", {}),", literal(restriction));
             }
             for (kept, other) in &model.aliases {
                 if emitted.contains(kept) {
@@ -83,12 +108,7 @@ pub fn emit(
                     continue;
                 };
                 emitted.push(kept.clone());
-                let _ = writeln!(
-                    out,
-                    "    (\"{kept}\", Restriction {{ allowed: &[{}], required: &[{}] }}),",
-                    names(&restriction.allowed),
-                    names(&restriction.required)
-                );
+                let _ = writeln!(out, "    (\"{kept}\", {}),", literal(restriction));
             }
             let _ = writeln!(out, "];\n");
             arms.push(format!(
@@ -108,6 +128,22 @@ pub fn emit(
     let _ = writeln!(out, "    match (version, phase) {{");
     for arm in arms {
         let _ = writeln!(out, "{arm}");
+    }
+    let _ = writeln!(out, "        _ => None,");
+    let _ = writeln!(out, "    }}");
+    let _ = writeln!(out, "}}\n");
+    let _ = writeln!(
+        out,
+        "/// What the library itself requires of every type in a version, before"
+    );
+    let _ = writeln!(out, "/// any phase narrows it.");
+    let _ = writeln!(
+        out,
+        "pub fn base_restrictions(version: Version) -> Option<&'static [(&'static str, Restriction)]> {{"
+    );
+    let _ = writeln!(out, "    match version {{");
+    for base in bases {
+        let _ = writeln!(out, "{base}");
     }
     let _ = writeln!(out, "        _ => None,");
     let _ = writeln!(out, "    }}");

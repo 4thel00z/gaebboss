@@ -11,6 +11,8 @@ repository.workspace = true
 [lib]
 name = "_gaebboss"
 crate-type = ["cdylib"]
+test = false
+doctest = false
 
 [dependencies]
 gaebboss-core = { workspace = true }

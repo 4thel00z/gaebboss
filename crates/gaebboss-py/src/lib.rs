@@ -707,8 +707,8 @@ impl PyBid {
     }
 }
 
-#[pymodule]
-fn _gaebboss(m: &Bound<'_, PyModule>) -> PyResult<()> {
+#[pymodule(name = "_gaebboss")]
+fn gaebboss(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add("GaebError", m.py().get_type::<GaebError>())?;
     m.add("__version__", env!("CARGO_PKG_VERSION"))?;
     m.add_class::<PyDocument>()?;

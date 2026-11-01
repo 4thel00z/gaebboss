@@ -147,8 +147,8 @@ fn emit_writer(out: &mut String, ty: &MType, variant: &dyn Fn(&str) -> String) {
     );
     if !ty.fields.is_empty() {
         let _ = writeln!(out, "    let restriction = w.restriction(\"{name}\");");
-        let _ = writeln!(out, "    for required in w.required(restriction) {{");
-        let _ = writeln!(out, "        let present = match required {{");
+        let _ = writeln!(out, "    let present = |name: Name| -> bool {{");
+        let _ = writeln!(out, "        match name {{");
         for f in &ty.fields {
             let _ = writeln!(
                 out,
@@ -158,11 +158,24 @@ fn emit_writer(out: &mut String, ty: &MType, variant: &dyn Fn(&str) -> String) {
             );
         }
         let _ = writeln!(out, "            _ => true,");
-        let _ = writeln!(out, "        }};");
-        let _ = writeln!(out, "        if !present {{");
+        let _ = writeln!(out, "        }}");
+        let _ = writeln!(out, "    }};");
+        let _ = writeln!(out, "    for required in w.required(restriction) {{");
+        let _ = writeln!(out, "        if !present(*required) {{");
         let _ = writeln!(
             out,
             "            w.missing(\"{name}\", *required, value.node)?;"
+        );
+        let _ = writeln!(out, "        }}");
+        let _ = writeln!(out, "    }}");
+        let _ = writeln!(out, "    for group in w.required_any(restriction) {{");
+        let _ = writeln!(
+            out,
+            "        if !group.iter().any(|n| present(*n)) && let Some(first) = group.first() {{"
+        );
+        let _ = writeln!(
+            out,
+            "            w.missing(\"{name}\", *first, value.node)?;"
         );
         let _ = writeln!(out, "        }}");
         let _ = writeln!(out, "    }}");

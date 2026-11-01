@@ -138,6 +138,9 @@ pub struct Profile {
 pub struct Restriction {
     pub allowed: BTreeSet<String>,
     pub required: BTreeSet<String>,
+    /// Groups of which at least one element must be present (a required
+    /// choice with several alternatives).
+    pub required_any: Vec<BTreeSet<String>>,
 }
 
 impl ComplexType {
@@ -373,6 +376,12 @@ fn resolve_content(content: &mut Content, complex: &BTreeSet<String>) {
     }
 }
 
+/// The restriction a type's own (library) content implies: everything it
+/// declares is allowed, its required particles are required.
+pub fn base_restriction(t: &ComplexType) -> Restriction {
+    restriction_of(t, false)
+}
+
 fn restriction_of(t: &ComplexType, zero_max_excludes: bool) -> Restriction {
     let mut r = Restriction::default();
     collect_restriction(&t.content, true, zero_max_excludes, &mut r);
@@ -404,7 +413,21 @@ fn collect_restriction(
                 }
             }
             Particle::Group { content, .. } => {
-                collect_restriction(content, required, zero_max_excludes, r)
+                let alternatives = match &**content {
+                    Content::Choice(inner) => Some(inner),
+                    _ => None,
+                };
+                if required && alternatives.is_some() {
+                    let mut names = BTreeSet::new();
+                    let mut members = Restriction::default();
+                    collect_restriction(content, false, zero_max_excludes, &mut members);
+                    names.extend(members.allowed.iter().cloned());
+                    match names.len() {
+                        1 => r.required.extend(names),
+                        _ => r.required_any.push(names),
+                    }
+                }
+                collect_restriction(content, required, zero_max_excludes, r);
             }
         }
     }
@@ -688,6 +711,22 @@ mod tests {
         let schema = load(&standard().join("3.3"), SchemaVersion::V33).unwrap();
         let x84 = &schema.profiles["84"];
         assert_eq!(x84.namespace, "http://www.gaeb.de/GAEB_DA_XML/DA84/3.3");
+        let description = &x84.restricted["tgDescription"];
+        assert!(
+            description.required.contains("CompleteText")
+                || description
+                    .required_any
+                    .iter()
+                    .any(|g| g.contains("CompleteText")),
+            "{description:?}"
+        );
+        let text = &x84.restricted["tgBoQText"];
+        assert!(
+            text.required_any
+                .iter()
+                .any(|g| g.contains("Text") && g.contains("TextComplement")),
+            "{text:?}"
+        );
         let item = &x84.restricted["tgItem"];
         assert!(item.allowed.contains("UP"));
         assert!(item.allowed.contains("IT"));

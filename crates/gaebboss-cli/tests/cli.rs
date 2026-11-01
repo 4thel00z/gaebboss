@@ -189,3 +189,50 @@ fn bid_from_official_x83_writes_x84() {
         .success()
         .stdout(predicate::str::contains("phase: X84"));
 }
+
+#[test]
+fn bid_prices_accept_semicolons_and_decimal_commas() {
+    let dir = tempfile::tempdir().unwrap();
+    let tender = fixture("3.3/bvbs_bauausfuehrung.x83");
+    let listing = gaebboss()
+        .args(["items", &tender, "--tsv"])
+        .output()
+        .unwrap();
+    let rows: Vec<String> = String::from_utf8(listing.stdout)
+        .unwrap()
+        .lines()
+        .skip(1)
+        .map(|l| l.split('\t').next().unwrap().to_string())
+        .collect();
+    let mut csv = String::from("oz;up\n");
+    for oz in &rows {
+        csv.push_str(&format!("{oz};12,50\n"));
+    }
+    let prices = dir.path().join("prices.csv");
+    std::fs::write(&prices, csv).unwrap();
+    let bidder = dir.path().join("bidder.toml");
+    std::fs::write(
+        &bidder,
+        "name1 = \"Bau GmbH\"\nstreet = \"Weg 1\"\npcode = \"12345\"\ncity = \"Berlin\"\n",
+    )
+    .unwrap();
+    let out = dir.path().join("bid.X84");
+    gaebboss()
+        .args([
+            "bid",
+            &tender,
+            "--prices",
+            prices.to_str().unwrap(),
+            "--bidder",
+            bidder.to_str().unwrap(),
+            "-o",
+            out.to_str().unwrap(),
+        ])
+        .assert()
+        .success();
+    gaebboss()
+        .args(["items", out.to_str().unwrap(), "--tsv"])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("\t12.500\t"));
+}

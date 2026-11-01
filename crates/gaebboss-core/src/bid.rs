@@ -275,8 +275,9 @@ impl Bid {
         let unpriced: Vec<String> = self
             .doc
             .items()
+            .filter(|i| !i.not_offered() && i.kind() != ItemKind::NotApplicable)
             .filter(|i| {
-                !i.not_offered() && i.unit_price().is_none() && i.kind() != ItemKind::NotApplicable
+                i.unit_price().is_none() || (i.item.qty_tbd == Some(true) && i.quantity().is_none())
             })
             .map(|i| i.oz.dotted())
             .collect();
@@ -284,7 +285,12 @@ impl Bid {
             return Err(BidError::Unpriced(unpriced));
         }
         let (discount, vat) = (self.discount, self.vat);
+        let today = self.doc.intern(&today_iso());
         let (gaeb, _) = self.doc.edit();
+        let info = gaeb.gaeb_info.get_or_insert_with(Default::default);
+        if info.date.is_none() {
+            info.date = Some(today);
+        }
         let Some(boq) = gaeb.award.as_mut().and_then(|a| a.boq.as_mut()) else {
             return Ok(self.doc);
         };
@@ -321,6 +327,54 @@ impl Bid {
     pub fn write(&self) -> Result<Vec<u8>, WriteError> {
         self.doc.write(&self.doc.x84_options())
     }
+}
+
+/// Drops what an X84 item must not carry: a description without a long
+/// text (the X84 schema allows nothing else in it), also inside
+/// sub-descriptions.
+fn tidy_for_x84(item: &mut Item) {
+    if item
+        .description
+        .as_ref()
+        .is_some_and(|d| d.complete_text.is_none())
+    {
+        item.description = None;
+    }
+    for sub in &mut item.sub_descr {
+        if sub
+            .description
+            .as_ref()
+            .is_some_and(|d| d.complete_text.is_none())
+        {
+            sub.description = None;
+        }
+    }
+}
+
+/// Today's date as `YYYY-MM-DD` from the system clock.
+fn today_iso() -> String {
+    let secs = std::time::SystemTime::now()
+        .duration_since(std::time::UNIX_EPOCH)
+        .map(|d| d.as_secs())
+        .unwrap_or(0);
+    let days = i64::try_from(secs / 86_400).unwrap_or(0);
+    let z = days + 719_468;
+    let era = z.div_euclid(146_097);
+    let doe = z.rem_euclid(146_097);
+    let yoe = (doe - doe / 1_460 + doe / 36_524 - doe / 146_096) / 365;
+    let y = yoe + era * 400;
+    let doy = doe - (365 * yoe + yoe / 4 - yoe / 100);
+    let mp = (5 * doy + 2) / 153;
+    let d = doy - (153 * mp + 2) / 5 + 1;
+    let m = match mp < 10 {
+        true => mp + 3,
+        false => mp - 9,
+    };
+    let year = match m <= 2 {
+        true => y + 1,
+        false => y,
+    };
+    format!("{year:04}-{m:02}-{d:02}")
 }
 
 fn price_scale(value: Decimal) -> Result<Decimal, BidError> {
@@ -504,12 +558,16 @@ fn sum_body(body: &mut BoQBody) -> Result<Decimal, BidError> {
     }
     if let Some(list) = body.itemlist.as_mut() {
         for item in &mut list.item {
+            tidy_for_x84(item);
             if !counts_towards_total(item) {
                 item.it = None;
                 continue;
             }
             if let (Some(qty), Some(up)) = (item.qty, item.up) {
                 item.it = item_total(qty, up);
+            }
+            if item.qty_tbd != Some(true) {
+                item.qty = None;
             }
             let Some(total) = item.it else { continue };
             sum = sum.checked_add(total).ok_or(BidError::Overflow)?;
@@ -723,5 +781,47 @@ mod tests {
         assert_eq!(totals.total, Some(d("720.92")));
         assert_eq!(totals.discount_pcnt, Some(d("1.5")));
         assert_eq!(totals.tot_after_disc, Some(d("710.11")));
+    }
+
+    #[test]
+    fn fixed_quantities_are_not_written_and_free_items_need_one() {
+        let mut bid = Bid::from_tender(&tender(), bidder()).unwrap();
+        bid.price("i1", d("1")).unwrap();
+        bid.price("i2", d("1")).unwrap();
+        bid.not_offered("i3").unwrap();
+        bid.price("i4", d("1")).unwrap();
+        let Err(BidError::Unpriced(ozs)) = bid.finish() else {
+            panic!("a free quantity item without a quantity is not priced")
+        };
+        assert_eq!(ozs, vec!["01.0020".to_string()]);
+        let mut bid = Bid::from_tender(&tender(), bidder()).unwrap();
+        bid.price("i1", d("1")).unwrap();
+        bid.free_quantity("i2", d("2")).unwrap();
+        bid.price("i2", d("1")).unwrap();
+        bid.not_offered("i3").unwrap();
+        bid.price("i4", d("1")).unwrap();
+        let doc = bid.finish().unwrap();
+        let text = String::from_utf8(doc.write(&doc.x84_options()).unwrap()).unwrap();
+        assert!(
+            !text.contains("<Item ID=\"i1\" RNoPart=\"10\"><Qty>"),
+            "{text}"
+        );
+        assert!(
+            text.contains("<Item ID=\"i2\" RNoPart=\"20\"><Qty>2.000</Qty>"),
+            "{text}"
+        );
+    }
+
+    #[test]
+    fn finish_supplies_a_date_and_drops_descriptions_without_text() {
+        let xml = "<GAEB xmlns=\"http://www.gaeb.de/GAEB_DA_XML/DA83/3.3\"><GAEBInfo><Version>3.3</Version><VersDate>2021-05</VersDate></GAEBInfo><Award><DP>83</DP><BoQ ID=\"b\"><BoQInfo><Name>LV</Name><LblBoQ>T</LblBoQ><OutlCompl>OutTxt</OutlCompl><BoQBkdn><Type>Item</Type><Length>4</Length><Num>Yes</Num></BoQBkdn></BoQInfo><BoQBody><Itemlist><Item ID=\"i1\" RNoPart=\"10\"><Qty>1.000</Qty><QU>m</QU><Description><OutlineText><OutlTxt><TextOutlTxt><p><span>k</span></p></TextOutlTxt></OutlTxt></OutlineText></Description></Item></Itemlist></BoQBody></BoQ></Award></GAEB>";
+        let tender = Document::parse(xml.as_bytes()).unwrap();
+        let mut bid = Bid::from_tender(&tender, bidder()).unwrap();
+        bid.price("i1", d("2")).unwrap();
+        let doc = bid.finish().unwrap();
+        let date = doc.gaeb.gaeb_info.as_ref().unwrap().date.unwrap();
+        assert_eq!(doc.str(date).len(), 10);
+        let text = String::from_utf8(doc.write(&doc.x84_options()).unwrap()).unwrap();
+        assert!(!text.contains("<Description"), "{text}");
     }
 }

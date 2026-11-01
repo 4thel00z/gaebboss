@@ -9,6 +9,10 @@ use crate::span::{MAX_INPUT, Span};
 use crate::tape::{Attr, NONE, Node, NodeId, Tape};
 use crate::warning::{Warning, WarningCode};
 
+/// Deepest element nesting accepted; a legal bill has about twenty levels,
+/// and every walk over the tape recurses at most this far.
+pub const MAX_DEPTH: usize = 256;
+
 struct Frame {
     node: NodeId,
     last_child: NodeId,
@@ -43,7 +47,7 @@ pub fn lex(input: &[u8]) -> Result<Tape> {
         scratch: Vec::with_capacity(16),
         pos: 0,
     };
-    lexer.run();
+    lexer.run()?;
     if lexer.tape.root == NONE {
         return Err(Error::NoGaebRoot);
     }
@@ -51,7 +55,7 @@ pub fn lex(input: &[u8]) -> Result<Tape> {
 }
 
 impl<'a> Lexer<'a> {
-    fn run(&mut self) {
+    fn run(&mut self) -> Result<()> {
         let input = self.input;
         while self.pos < input.len() {
             let Some(lt) = memchr(b'<', &input[self.pos..]) else {
@@ -67,7 +71,7 @@ impl<'a> Lexer<'a> {
                 Some(b'?') => self.pos = self.skip_to(lt + 2, b"?>"),
                 Some(b'!') => self.pos = self.declaration(lt),
                 Some(b'/') => self.pos = self.end_tag(lt),
-                Some(_) => self.pos = self.start_tag(lt),
+                Some(_) => self.pos = self.start_tag(lt)?,
                 None => self.pos = input.len(),
             }
             if self.tape.root != NONE && self.stack.is_empty() {
@@ -86,6 +90,7 @@ impl<'a> Lexer<'a> {
             ));
             self.close(frame, end, end);
         }
+        Ok(())
     }
 
     fn name_of(&self, node: NodeId) -> String {
@@ -159,7 +164,13 @@ impl<'a> Lexer<'a> {
             .push((Span::decoded(start, self.tape.decoded.len()), offset));
     }
 
-    fn start_tag(&mut self, lt: usize) -> usize {
+    fn start_tag(&mut self, lt: usize) -> Result<usize> {
+        if self.stack.len() >= MAX_DEPTH {
+            return Err(Error::NestingTooDeep {
+                offset: lt,
+                limit: MAX_DEPTH,
+            });
+        }
         let input = self.input;
         let name_start = lt + 1;
         let mut i = name_start;
@@ -222,7 +233,7 @@ impl<'a> Lexer<'a> {
             true => self.close(frame, end, end),
             false => self.stack.push(frame),
         }
-        end
+        Ok(end)
     }
 
     fn root(&mut self, node_id: NodeId, prefix: Option<(usize, usize)>) {
@@ -722,5 +733,22 @@ mod tests {
             secs,
             bytes as f64 / 1e6 / secs
         );
+    }
+
+    #[test]
+    fn nesting_beyond_the_limit_is_an_error_not_an_abort() {
+        let mut input = String::from("<GAEB>");
+        for _ in 0..(MAX_DEPTH + 10) {
+            input.push_str("<BoQBody><BoQCtgy ID=\"c\" RNoPart=\"1\">");
+        }
+        assert!(matches!(
+            lex(input.as_bytes()),
+            Err(crate::error::Error::NestingTooDeep { .. })
+        ));
+        let mut ok = String::from("<GAEB>");
+        for _ in 0..(MAX_DEPTH / 2 - 2) {
+            ok.push_str("<BoQBody><BoQCtgy ID=\"c\" RNoPart=\"1\">");
+        }
+        assert!(lex(ok.as_bytes()).is_ok());
     }
 }

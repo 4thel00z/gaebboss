@@ -223,7 +223,7 @@ pub fn read_boq(r: &mut Reader<'_>, node: NodeId) -> BoQ {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -316,8 +316,8 @@ pub fn read_boqctgy(r: &mut Reader<'_>, node: NodeId) -> BoQCtgy {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
-            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
+            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -353,8 +353,8 @@ pub fn read_boqctgyqd(r: &mut Reader<'_>, node: NodeId) -> BoQCtgyQD {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
-            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
+            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -378,8 +378,8 @@ pub fn read_boqctgyref(r: &mut Reader<'_>, node: NodeId) -> BoQCtgyRef {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, node, attr),
-            Name::AttrType => r.set_attr_span(&mut out.ty, node, attr),
+            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, attr),
+            Name::AttrType => r.set_attr_span(&mut out.ty, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -440,8 +440,8 @@ pub fn read_boqitemref(r: &mut Reader<'_>, node: NodeId) -> BoQItemRef {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, node, attr),
-            Name::AttrType => r.set_attr_span(&mut out.ty, node, attr),
+            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, attr),
+            Name::AttrType => r.set_attr_span(&mut out.ty, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -465,7 +465,7 @@ pub fn read_boqqd(r: &mut Reader<'_>, node: NodeId) -> BoQQD {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -540,7 +540,7 @@ pub fn read_boqtext(r: &mut Reader<'_>, node: NodeId) -> BoQText {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrStyle => r.set_attr_span(&mut out.attr_style, node, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.attr_style, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -644,7 +644,7 @@ pub fn read_cashdiscdays(r: &mut Reader<'_>, node: NodeId) -> CashDiscDays {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrTypeOfDays => r.set_attr_span(&mut out.type_of_days, node, attr),
+            Name::AttrTypeOfDays => r.set_attr_span(&mut out.type_of_days, attr),
             Name::AttrDays => r.set_attr_integer(&mut out.days, node, attr),
             _ => r.unknown_attr(node, attr),
         }
@@ -701,10 +701,10 @@ pub fn read_catalogref(r: &mut Reader<'_>, node: NodeId) -> CatalogRef {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrCatalogAlias => r.set_attr_span(&mut out.catalog_alias, node, attr),
-            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, node, attr),
-            Name::AttrName => r.set_attr_span(&mut out.name, node, attr),
-            Name::AttrSetID => r.set_attr_span(&mut out.set_id, node, attr),
+            Name::AttrCatalogAlias => r.set_attr_span(&mut out.catalog_alias, attr),
+            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, attr),
+            Name::AttrName => r.set_attr_span(&mut out.name, attr),
+            Name::AttrSetID => r.set_attr_span(&mut out.set_id, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -733,7 +733,7 @@ pub fn read_catalogrefnumvalue(r: &mut Reader<'_>, node: NodeId) -> CatalogRefNu
         match attr.name {
             Name::AttrValue => r.set_attr_decimal(&mut out.value, node, attr),
             Name::AttrUnitCtgy => r.set_attr_enum(&mut out.unit_ctgy, node, attr),
-            Name::AttrUnit => r.set_attr_span(&mut out.unit, node, attr),
+            Name::AttrUnit => r.set_attr_span(&mut out.unit, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -770,8 +770,8 @@ pub fn read_catalogrefnumvaluecatalogreference(
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrCatalogAlias => r.set_attr_span(&mut out.catalog_alias, node, attr),
-            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, node, attr),
+            Name::AttrCatalogAlias => r.set_attr_span(&mut out.catalog_alias, attr),
+            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -794,7 +794,7 @@ pub fn read_catalogrefnumvalueexpression(
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrCatalogAlias => r.set_attr_span(&mut out.catalog_alias, node, attr),
+            Name::AttrCatalogAlias => r.set_attr_span(&mut out.catalog_alias, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -817,8 +817,8 @@ pub fn read_categoryelement(r: &mut Reader<'_>, node: NodeId) -> CategoryElement
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
-            Name::AttrElePart => r.set_attr_span(&mut out.ele_part, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
+            Name::AttrElePart => r.set_attr_span(&mut out.ele_part, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -847,8 +847,8 @@ pub fn read_categoryelementref(r: &mut Reader<'_>, node: NodeId) -> CategoryElem
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, node, attr),
-            Name::AttrType => r.set_attr_span(&mut out.ty, node, attr),
+            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, attr),
+            Name::AttrType => r.set_attr_span(&mut out.ty, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -986,7 +986,7 @@ pub fn read_consortiummember(r: &mut Reader<'_>, node: NodeId) -> ConsortiumMemb
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1010,7 +1010,7 @@ pub fn read_consortiummemberref(r: &mut Reader<'_>, node: NodeId) -> ConsortiumM
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, node, attr),
+            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1047,7 +1047,7 @@ pub fn read_costapproach(r: &mut Reader<'_>, node: NodeId) -> CostApproach {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrKey => r.set_attr_span(&mut out.key, node, attr),
+            Name::AttrKey => r.set_attr_span(&mut out.key, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1073,8 +1073,8 @@ pub fn read_costelement(r: &mut Reader<'_>, node: NodeId) -> CostElement {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
-            Name::AttrElePart => r.set_attr_span(&mut out.ele_part, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
+            Name::AttrElePart => r.set_attr_span(&mut out.ele_part, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1114,8 +1114,8 @@ pub fn read_costelementref(r: &mut Reader<'_>, node: NodeId) -> CostElementRef {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, node, attr),
-            Name::AttrType => r.set_attr_span(&mut out.ty, node, attr),
+            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, attr),
+            Name::AttrType => r.set_attr_span(&mut out.ty, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1138,7 +1138,7 @@ pub fn read_costtype(r: &mut Reader<'_>, node: NodeId) -> CostType {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrKey => r.set_attr_span(&mut out.key, node, attr),
+            Name::AttrKey => r.set_attr_span(&mut out.key, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1205,7 +1205,7 @@ pub fn read_ctlgassignquantity(r: &mut Reader<'_>, node: NodeId) -> CtlgAssignQu
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrType => r.set_attr_span(&mut out.ty, node, attr),
+            Name::AttrType => r.set_attr_span(&mut out.ty, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1276,7 +1276,7 @@ pub fn read_description(r: &mut Reader<'_>, node: NodeId) -> Description {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1329,8 +1329,8 @@ pub fn read_dimensionelement(r: &mut Reader<'_>, node: NodeId) -> DimensionEleme
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
-            Name::AttrElePart => r.set_attr_span(&mut out.ele_part, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
+            Name::AttrElePart => r.set_attr_span(&mut out.ele_part, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1361,8 +1361,8 @@ pub fn read_dimensionelementref(r: &mut Reader<'_>, node: NodeId) -> DimensionEl
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, node, attr),
-            Name::AttrType => r.set_attr_span(&mut out.ty, node, attr),
+            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, attr),
+            Name::AttrType => r.set_attr_span(&mut out.ty, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1436,8 +1436,8 @@ pub fn read_ecctgy(r: &mut Reader<'_>, node: NodeId) -> ECCtgy {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
-            Name::AttrElePart => r.set_attr_span(&mut out.ele_part, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
+            Name::AttrElePart => r.set_attr_span(&mut out.ele_part, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1521,7 +1521,7 @@ pub fn read_elementalcosting(r: &mut Reader<'_>, node: NodeId) -> ElementalCosti
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1547,8 +1547,8 @@ pub fn read_ftext(r: &mut Reader<'_>, node: NodeId) -> FText {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
-            Name::AttrTextWidth => r.set_attr_span(&mut out.text_width, node, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
+            Name::AttrTextWidth => r.set_attr_span(&mut out.text_width, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1606,8 +1606,8 @@ pub fn read_ftexttc(r: &mut Reader<'_>, node: NodeId) -> FTextTC {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
-            Name::AttrTextWidth => r.set_attr_span(&mut out.text_width, node, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
+            Name::AttrTextWidth => r.set_attr_span(&mut out.text_width, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1669,7 +1669,7 @@ pub fn read_gaeb(r: &mut Reader<'_>, node: NodeId) -> GAEB {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrSpace => r.set_attr_span(&mut out.space, node, attr),
+            Name::AttrSpace => r.set_attr_span(&mut out.space, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1785,9 +1785,9 @@ pub fn read_houritem(r: &mut Reader<'_>, node: NodeId) -> HourItem {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
-            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, node, attr),
-            Name::AttrRNoIndex => r.set_attr_span(&mut out.rno_index, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
+            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, attr),
+            Name::AttrRNoIndex => r.set_attr_span(&mut out.rno_index, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1817,8 +1817,8 @@ pub fn read_htmldiv(r: &mut Reader<'_>, node: NodeId) -> HtmlDiv {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1848,8 +1848,8 @@ pub fn read_htmldivtc(r: &mut Reader<'_>, node: NodeId) -> HtmlDivTC {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1883,8 +1883,8 @@ pub fn read_htmlli(r: &mut Reader<'_>, node: NodeId) -> HtmlLi {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1930,8 +1930,8 @@ pub fn read_htmllitc(r: &mut Reader<'_>, node: NodeId) -> HtmlLiTC {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -1981,9 +1981,9 @@ pub fn read_htmlol(r: &mut Reader<'_>, node: NodeId) -> HtmlOl {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
-            Name::AttrStart => r.set_attr_span(&mut out.start, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
+            Name::AttrStart => r.set_attr_span(&mut out.start, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -2017,9 +2017,9 @@ pub fn read_htmloltc(r: &mut Reader<'_>, node: NodeId) -> HtmlOlTC {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
-            Name::AttrStart => r.set_attr_span(&mut out.start, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
+            Name::AttrStart => r.set_attr_span(&mut out.start, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -2042,8 +2042,8 @@ pub fn read_htmlp(r: &mut Reader<'_>, node: NodeId) -> HtmlP {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -2077,8 +2077,8 @@ pub fn read_htmlpmltext(r: &mut Reader<'_>, node: NodeId) -> HtmlPMLText {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -2108,8 +2108,8 @@ pub fn read_htmlptc(r: &mut Reader<'_>, node: NodeId) -> HtmlPTC {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -2148,8 +2148,8 @@ pub fn read_htmlspan(r: &mut Reader<'_>, node: NodeId) -> HtmlSpan {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -2169,15 +2169,15 @@ pub fn read_htmltable(r: &mut Reader<'_>, node: NodeId) -> HtmlTable {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
             Name::AttrAlign => r.set_attr_enum(&mut out.align, node, attr),
             Name::AttrBorder => r.set_attr_integer(&mut out.border, node, attr),
-            Name::AttrCellpadding => r.set_attr_span(&mut out.cellpadding, node, attr),
+            Name::AttrCellpadding => r.set_attr_span(&mut out.cellpadding, attr),
             Name::AttrFrame => r.set_attr_enum(&mut out.frame, node, attr),
-            Name::AttrHeight => r.set_attr_span(&mut out.height, node, attr),
-            Name::AttrWidth => r.set_attr_span(&mut out.width, node, attr),
-            Name::AttrOrg => r.set_attr_span(&mut out.org, node, attr),
+            Name::AttrHeight => r.set_attr_span(&mut out.height, attr),
+            Name::AttrWidth => r.set_attr_span(&mut out.width, attr),
+            Name::AttrOrg => r.set_attr_span(&mut out.org, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -2200,15 +2200,15 @@ pub fn read_htmltabletc(r: &mut Reader<'_>, node: NodeId) -> HtmlTableTC {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
             Name::AttrAlign => r.set_attr_enum(&mut out.align, node, attr),
             Name::AttrBorder => r.set_attr_integer(&mut out.border, node, attr),
-            Name::AttrCellpadding => r.set_attr_span(&mut out.cellpadding, node, attr),
+            Name::AttrCellpadding => r.set_attr_span(&mut out.cellpadding, attr),
             Name::AttrFrame => r.set_attr_enum(&mut out.frame, node, attr),
-            Name::AttrHeight => r.set_attr_span(&mut out.height, node, attr),
-            Name::AttrWidth => r.set_attr_span(&mut out.width, node, attr),
-            Name::AttrOrg => r.set_attr_span(&mut out.org, node, attr),
+            Name::AttrHeight => r.set_attr_span(&mut out.height, attr),
+            Name::AttrWidth => r.set_attr_span(&mut out.width, attr),
+            Name::AttrOrg => r.set_attr_span(&mut out.org, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -2231,8 +2231,8 @@ pub fn read_htmltd(r: &mut Reader<'_>, node: NodeId) -> HtmlTd {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
             Name::AttrAlign => r.set_attr_enum(&mut out.align, node, attr),
             Name::AttrColspan => r.set_attr_integer(&mut out.colspan, node, attr),
             Name::AttrRowspan => r.set_attr_integer(&mut out.rowspan, node, attr),
@@ -2286,8 +2286,8 @@ pub fn read_htmltdtc(r: &mut Reader<'_>, node: NodeId) -> HtmlTdTC {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
             Name::AttrAlign => r.set_attr_enum(&mut out.align, node, attr),
             Name::AttrColspan => r.set_attr_integer(&mut out.colspan, node, attr),
             Name::AttrRowspan => r.set_attr_integer(&mut out.rowspan, node, attr),
@@ -2345,8 +2345,8 @@ pub fn read_htmlth(r: &mut Reader<'_>, node: NodeId) -> HtmlTh {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
             Name::AttrAlign => r.set_attr_enum(&mut out.align, node, attr),
             Name::AttrValign => r.set_attr_enum(&mut out.valign, node, attr),
             _ => r.unknown_attr(node, attr),
@@ -2398,8 +2398,8 @@ pub fn read_htmltr(r: &mut Reader<'_>, node: NodeId) -> HtmlTr {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
             Name::AttrAlign => r.set_attr_enum(&mut out.align, node, attr),
             Name::AttrValign => r.set_attr_enum(&mut out.valign, node, attr),
             _ => r.unknown_attr(node, attr),
@@ -2431,8 +2431,8 @@ pub fn read_htmltrtc(r: &mut Reader<'_>, node: NodeId) -> HtmlTrTC {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
             Name::AttrAlign => r.set_attr_enum(&mut out.align, node, attr),
             Name::AttrValign => r.set_attr_enum(&mut out.valign, node, attr),
             _ => r.unknown_attr(node, attr),
@@ -2464,8 +2464,8 @@ pub fn read_htmlul(r: &mut Reader<'_>, node: NodeId) -> HtmlUl {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -2499,8 +2499,8 @@ pub fn read_htmlultc(r: &mut Reader<'_>, node: NodeId) -> HtmlUlTC {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrClass => r.set_attr_span(&mut out.class, node, attr),
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
+            Name::AttrClass => r.set_attr_span(&mut out.class, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -2523,7 +2523,7 @@ pub fn read_isocur(r: &mut Reader<'_>, node: NodeId) -> ISOCur {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrIso => r.set_attr_span(&mut out.iso, node, attr),
+            Name::AttrIso => r.set_attr_span(&mut out.iso, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -2546,12 +2546,12 @@ pub fn read_image(r: &mut Reader<'_>, node: NodeId) -> Image {
         match attr.name {
             Name::AttrAlign => r.set_attr_enum(&mut out.align, node, attr),
             Name::AttrBorder => r.set_attr_integer(&mut out.border, node, attr),
-            Name::AttrHspace => r.set_attr_span(&mut out.hspace, node, attr),
-            Name::AttrVspace => r.set_attr_span(&mut out.vspace, node, attr),
-            Name::AttrWidth => r.set_attr_span(&mut out.width, node, attr),
-            Name::AttrType => r.set_attr_span(&mut out.ty, node, attr),
-            Name::AttrName => r.set_attr_span(&mut out.name, node, attr),
-            Name::AttrEncoding => r.set_attr_span(&mut out.encoding, node, attr),
+            Name::AttrHspace => r.set_attr_span(&mut out.hspace, attr),
+            Name::AttrVspace => r.set_attr_span(&mut out.vspace, attr),
+            Name::AttrWidth => r.set_attr_span(&mut out.width, attr),
+            Name::AttrType => r.set_attr_span(&mut out.ty, attr),
+            Name::AttrName => r.set_attr_span(&mut out.name, attr),
+            Name::AttrEncoding => r.set_attr_span(&mut out.encoding, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -2834,9 +2834,9 @@ pub fn read_item(r: &mut Reader<'_>, node: NodeId) -> Item {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
-            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, node, attr),
-            Name::AttrRNoIndex => r.set_attr_span(&mut out.rno_index, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
+            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, attr),
+            Name::AttrRNoIndex => r.set_attr_span(&mut out.rno_index, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -2916,9 +2916,9 @@ pub fn read_itemqd(r: &mut Reader<'_>, node: NodeId) -> ItemQD {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
-            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, node, attr),
-            Name::AttrRNoIndex => r.set_attr_span(&mut out.rno_index, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
+            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, attr),
+            Name::AttrRNoIndex => r.set_attr_span(&mut out.rno_index, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -3014,7 +3014,7 @@ pub fn read_lotgrp(r: &mut Reader<'_>, node: NodeId) -> LotGrp {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -3040,8 +3040,8 @@ pub fn read_mltext(r: &mut Reader<'_>, node: NodeId) -> MLText {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrStyle => r.set_attr_span(&mut out.style, node, attr),
-            Name::AttrTextWidth => r.set_attr_span(&mut out.text_width, node, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.style, attr),
+            Name::AttrTextWidth => r.set_attr_span(&mut out.text_width, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -3100,9 +3100,9 @@ pub fn read_markupitem(r: &mut Reader<'_>, node: NodeId) -> MarkupItem {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
-            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, node, attr),
-            Name::AttrRNoIndex => r.set_attr_span(&mut out.rno_index, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
+            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, attr),
+            Name::AttrRNoIndex => r.set_attr_span(&mut out.rno_index, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -3147,9 +3147,9 @@ pub fn read_markupitemctr(r: &mut Reader<'_>, node: NodeId) -> MarkupItemCTR {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
-            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, node, attr),
-            Name::AttrRNoIndex => r.set_attr_span(&mut out.rno_index, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
+            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, attr),
+            Name::AttrRNoIndex => r.set_attr_span(&mut out.rno_index, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -3175,9 +3175,9 @@ pub fn read_markupitemown(r: &mut Reader<'_>, node: NodeId) -> MarkupItemOWN {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
-            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, node, attr),
-            Name::AttrRNoIndex => r.set_attr_span(&mut out.rno_index, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
+            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, attr),
+            Name::AttrRNoIndex => r.set_attr_span(&mut out.rno_index, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -3288,9 +3288,9 @@ pub fn read_materialitem(r: &mut Reader<'_>, node: NodeId) -> MaterialItem {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
-            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, node, attr),
-            Name::AttrRNoIndex => r.set_attr_span(&mut out.rno_index, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
+            Name::AttrRNoPart => r.set_attr_span(&mut out.rno_part, attr),
+            Name::AttrRNoIndex => r.set_attr_span(&mut out.rno_index, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -3471,7 +3471,7 @@ pub fn read_orderitem(r: &mut Reader<'_>, node: NodeId) -> OrderItem {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -3555,7 +3555,7 @@ pub fn read_outltxt(r: &mut Reader<'_>, node: NodeId) -> OutlTxt {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrStyle => r.set_attr_span(&mut out.attr_style, node, attr),
+            Name::AttrStyle => r.set_attr_span(&mut out.attr_style, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -3630,7 +3630,7 @@ pub fn read_perfdescr(r: &mut Reader<'_>, node: NodeId) -> PerfDescr {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -3658,7 +3658,7 @@ pub fn read_perfdescription(r: &mut Reader<'_>, node: NodeId) -> PerfDescription
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -3743,7 +3743,7 @@ pub fn read_pricemodificationquotation(
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, node, attr),
+            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -3843,7 +3843,7 @@ pub fn read_property(r: &mut Reader<'_>, node: NodeId) -> Property {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -3895,7 +3895,7 @@ pub fn read_qdetermitemqtakeoff(r: &mut Reader<'_>, node: NodeId) -> QDetermItem
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrRow => r.set_attr_span(&mut out.row, node, attr),
+            Name::AttrRow => r.set_attr_span(&mut out.row, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -3932,7 +3932,7 @@ pub fn read_qtydeterminfo(r: &mut Reader<'_>, node: NodeId) -> QtyDetermInfo {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -4051,7 +4051,7 @@ pub fn read_quotationkind(r: &mut Reader<'_>, node: NodeId) -> QuotationKind {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -4071,7 +4071,7 @@ pub fn read_refboq(r: &mut Reader<'_>, node: NodeId) -> RefBoQ {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, node, attr),
+            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -4091,7 +4091,7 @@ pub fn read_refboqctgy(r: &mut Reader<'_>, node: NodeId) -> RefBoQCtgy {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, node, attr),
+            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -4162,7 +4162,7 @@ pub fn read_refitem(r: &mut Reader<'_>, node: NodeId) -> RefItem {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, node, attr),
+            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -4249,7 +4249,7 @@ pub fn read_reflotgrp(r: &mut Reader<'_>, node: NodeId) -> RefLotGrp {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, node, attr),
+            Name::AttrIDRef => r.set_attr_span(&mut out.id_ref, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -4269,7 +4269,7 @@ pub fn read_remark(r: &mut Reader<'_>, node: NodeId) -> Remark {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -4477,11 +4477,11 @@ pub fn read_spatialhierarchyspatialhierarchyinfocatalogdescription(
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrAlias => r.set_attr_span(&mut out.alias, node, attr),
-            Name::AttrCatalogType => r.set_attr_span(&mut out.catalog_type, node, attr),
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
-            Name::AttrCode => r.set_attr_span(&mut out.code, node, attr),
-            Name::AttrName => r.set_attr_span(&mut out.name, node, attr),
+            Name::AttrAlias => r.set_attr_span(&mut out.alias, attr),
+            Name::AttrCatalogType => r.set_attr_span(&mut out.catalog_type, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
+            Name::AttrCode => r.set_attr_span(&mut out.code, attr),
+            Name::AttrName => r.set_attr_span(&mut out.name, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -4507,8 +4507,8 @@ pub fn read_spatialhierarchyspatialhierarchyinfotopology(
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrGroup => r.set_attr_span(&mut out.group, node, attr),
-            Name::AttrCompositionType => r.set_attr_span(&mut out.composition_type, node, attr),
+            Name::AttrGroup => r.set_attr_span(&mut out.group, attr),
+            Name::AttrCompositionType => r.set_attr_span(&mut out.composition_type, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -4529,7 +4529,7 @@ pub fn read_stlno(r: &mut Reader<'_>, node: NodeId) -> StLNo {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrType => r.set_attr_span(&mut out.ty, node, attr),
+            Name::AttrType => r.set_attr_span(&mut out.ty, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -4550,7 +4550,7 @@ pub fn read_style(r: &mut Reader<'_>, node: NodeId) -> Style {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrTypeLower => r.set_attr_span(&mut out.ty, node, attr),
+            Name::AttrTypeLower => r.set_attr_span(&mut out.ty, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -4620,7 +4620,7 @@ pub fn read_textcomplement(r: &mut Reader<'_>, node: NodeId) -> TextComplement {
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
             Name::AttrMarkLbl => r.set_attr_integer(&mut out.mark_lbl, node, attr),
             Name::AttrKind => r.set_attr_enum(&mut out.kind, node, attr),
             Name::AttrEmpty => r.set_attr_bool(&mut out.empty, node, attr),
@@ -4656,9 +4656,9 @@ pub fn read_topologyelement(r: &mut Reader<'_>, node: NodeId) -> TopologyElement
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
-            Name::AttrCode => r.set_attr_span(&mut out.code, node, attr),
-            Name::AttrName => r.set_attr_span(&mut out.name, node, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
+            Name::AttrCode => r.set_attr_span(&mut out.code, attr),
+            Name::AttrName => r.set_attr_span(&mut out.name, attr),
             _ => r.unknown_attr(node, attr),
         }
     }
@@ -4689,12 +4689,10 @@ pub fn read_topologyelementbuildingelement(
     for i in 0..r.attr_count(node) {
         let attr = r.attr_at(node, i);
         match attr.name {
-            Name::AttrBuildingElementType => {
-                r.set_attr_span(&mut out.building_element_type, node, attr)
-            }
-            Name::AttrId => r.set_attr_span(&mut out.id, node, attr),
-            Name::AttrName => r.set_attr_span(&mut out.name, node, attr),
-            Name::AttrMaterial => r.set_attr_span(&mut out.material, node, attr),
+            Name::AttrBuildingElementType => r.set_attr_span(&mut out.building_element_type, attr),
+            Name::AttrId => r.set_attr_span(&mut out.id, attr),
+            Name::AttrName => r.set_attr_span(&mut out.name, attr),
+            Name::AttrMaterial => r.set_attr_span(&mut out.material, attr),
             _ => r.unknown_attr(node, attr),
         }
     }

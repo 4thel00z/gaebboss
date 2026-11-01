@@ -53,14 +53,23 @@ fn field_addtext(
 
 pub fn write_addtext(w: &mut Writer<'_>, value: &AddText, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("AddText");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::OutlineAddText => value.outline_add_text.is_some(),
             Name::DetailAddText => value.detail_add_text.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("AddText", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("AddText", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -329,8 +338,8 @@ fn field_address(
 
 pub fn write_address(w: &mut Writer<'_>, value: &Address, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("Address");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Name1 => value.name1.is_some(),
             Name::Name2 => value.name2.is_some(),
             Name::Name3 => value.name3.is_some(),
@@ -348,9 +357,18 @@ pub fn write_address(w: &mut Writer<'_>, value: &Address, tag: &str) -> Result<(
             Name::VATID => value.vatid.is_some(),
             Name::Bank => !value.bank.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Address", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Address", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -521,8 +539,8 @@ fn field_article(
 
 pub fn write_article(w: &mut Writer<'_>, value: &Article, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("Article");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Brand => value.brand.is_some(),
             Name::ArtNo => value.art_no.is_some(),
             Name::Qty => value.qty.is_some(),
@@ -530,9 +548,18 @@ pub fn write_article(w: &mut Writer<'_>, value: &Article, tag: &str) -> Result<(
             Name::ArtOutline => value.art_outline.is_some(),
             Name::AddText => !value.add_text.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Article", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Article", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -743,8 +770,8 @@ fn field_award(
 
 pub fn write_award(w: &mut Writer<'_>, value: &Award, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("Award");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::DP => value.dp.is_some(),
             Name::AwardInfo => value.award_info.is_some(),
             Name::IndivAgrInfo => value.indiv_agr_info.is_some(),
@@ -757,9 +784,18 @@ pub fn write_award(w: &mut Writer<'_>, value: &Award, tag: &str) -> Result<(), W
             Name::BoQ => value.boq.is_some(),
             Name::WgChange => value.wg_change.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Award", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Award", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -1209,8 +1245,8 @@ fn field_awardinfo(
 
 pub fn write_awardinfo(w: &mut Writer<'_>, value: &AwardInfo, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("AwardInfo");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::BoQID => value.boq_id.is_some(),
             Name::Cat => value.cat.is_some(),
             Name::SpecialType => value.special_type.is_some(),
@@ -1238,9 +1274,18 @@ pub fn write_awardinfo(w: &mut Writer<'_>, value: &AwardInfo, tag: &str) -> Resu
             Name::CashDiscount => !value.cash_discount.is_empty(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("AwardInfo", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("AwardInfo", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -1427,17 +1472,26 @@ fn field_bank(
 
 pub fn write_bank(w: &mut Writer<'_>, value: &Bank, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("Bank");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::LblBank => value.lbl_bank.is_some(),
             Name::BRNo => value.b_rno.is_some(),
             Name::AcctNo => value.acct_no.is_some(),
             Name::BIC => value.bic.is_some(),
             Name::IBAN => value.iban.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Bank", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Bank", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -1504,13 +1558,22 @@ pub fn write_bidderlist(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("BidderList");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Bidder => !value.bidder.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("BidderList", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("BidderList", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -1586,15 +1649,24 @@ fn field_boq(
 
 pub fn write_boq(w: &mut Writer<'_>, value: &BoQ, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("BoQ");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::BoQInfo => value.boq_info.is_some(),
             Name::BoQBody => value.boq_body.is_some(),
             Name::LotGrp => !value.lot_grp.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("BoQ", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("BoQ", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -1715,17 +1787,26 @@ fn field_boqbkdn(
 
 pub fn write_boqbkdn(w: &mut Writer<'_>, value: &BoQBkdn, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("BoQBkdn");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Type => value.ty.is_some(),
             Name::LblBoQBkdn => value.lbl_boq_bkdn.is_some(),
             Name::Length => value.length.is_some(),
             Name::Num => value.num.is_some(),
             Name::Alignment => value.alignment.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("BoQBkdn", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("BoQBkdn", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -1825,16 +1906,25 @@ fn field_boqbody(
 
 pub fn write_boqbody(w: &mut Writer<'_>, value: &BoQBody, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("BoQBody");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Remark => !value.remark.is_empty(),
             Name::PerfDescr => !value.perf_descr.is_empty(),
             Name::BoQCtgy => !value.boq_ctgy.is_empty(),
             Name::Itemlist => value.itemlist.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("BoQBody", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("BoQBody", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -1921,14 +2011,23 @@ fn field_boqbodyqd(
 
 pub fn write_boqbodyqd(w: &mut Writer<'_>, value: &BoQBodyQD, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("BoQBodyQD");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::BoQCtgy => !value.boq_ctgy.is_empty(),
             Name::Itemlist => value.itemlist.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("BoQBodyQD", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("BoQBodyQD", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -2169,8 +2268,8 @@ fn field_boqctgy(
 
 pub fn write_boqctgy(w: &mut Writer<'_>, value: &BoQCtgy, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("BoQCtgy");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::LblTx => value.lbl_tx.is_some(),
             Name::CPVCode => !value.cpv_code.is_empty(),
             Name::CONo => value.co_no.is_some(),
@@ -2186,9 +2285,18 @@ pub fn write_boqctgy(w: &mut Writer<'_>, value: &BoQCtgy, tag: &str) -> Result<(
             Name::BidUpDownReq => value.bid_up_down_req.is_some(),
             Name::BidUpDownPct => value.bid_up_down_pct.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("BoQCtgy", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("BoQCtgy", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -2296,14 +2404,23 @@ fn field_boqctgyqd(
 
 pub fn write_boqctgyqd(w: &mut Writer<'_>, value: &BoQCtgyQD, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("BoQCtgyQD");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             Name::BoQBody => value.boq_body.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("BoQCtgyQD", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("BoQCtgyQD", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -2367,13 +2484,22 @@ pub fn write_boqctgyref(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("BoQCtgyRef");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Portion => value.portion.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("BoQCtgyRef", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("BoQCtgyRef", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -2715,8 +2841,8 @@ fn field_boqinfo(
 
 pub fn write_boqinfo(w: &mut Writer<'_>, value: &BoQInfo, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("BoQInfo");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Name => value.name.is_some(),
             Name::LblBoQ => value.lbl_boq.is_some(),
             Name::CPVCode => !value.cpv_code.is_empty(),
@@ -2739,9 +2865,18 @@ pub fn write_boqinfo(w: &mut Writer<'_>, value: &BoQInfo, tag: &str) -> Result<(
             Name::CostType => !value.cost_type.is_empty(),
             Name::QtyDetermInfo => value.qty_determ_info.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("BoQInfo", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("BoQInfo", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -2868,14 +3003,23 @@ pub fn write_boqitemref(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("BoQItemRef");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Portion => value.portion.is_some(),
             Name::AddItem => value.add_item.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("BoQItemRef", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("BoQItemRef", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -3015,8 +3159,8 @@ fn field_boqqd(
 
 pub fn write_boqqd(w: &mut Writer<'_>, value: &BoQQD, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("BoQQD");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::RefBoQName => value.ref_boq_name.is_some(),
             Name::RefBoQID => value.ref_boq_id.is_some(),
             Name::BoQBkdn => !value.boq_bkdn.is_empty(),
@@ -3025,9 +3169,18 @@ pub fn write_boqqd(w: &mut Writer<'_>, value: &BoQQD, tag: &str) -> Result<(), W
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             Name::CtlgAttachment => value.ctlg_attachment.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("BoQQD", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("BoQQD", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -3103,13 +3256,22 @@ pub fn write_boqqdctlgattachment(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("BoQQDCtlgAttachment");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Attachment => !value.attachment.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("BoQQDCtlgAttachment", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("BoQQDCtlgAttachment", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -3218,17 +3380,26 @@ pub fn write_boqqdctlgattachmentattachment(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("BoQQDCtlgAttachmentAttachment");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Name => value.name.is_some(),
             Name::Text => value.text.is_some(),
             Name::Descrip => value.descrip.is_some(),
             Name::Type => value.ty.is_some(),
             Name::Data => value.data.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("BoQQDCtlgAttachmentAttachment", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("BoQQDCtlgAttachmentAttachment", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -3338,16 +3509,25 @@ fn field_boqtext(
 
 pub fn write_boqtext(w: &mut Writer<'_>, value: &BoQText, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("BoQText");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Style => value.style.is_some(),
             Name::Text => !value.text.is_empty(),
             Name::TextComplement => !value.text_complement.is_empty(),
             Name::AttachmentLower => !value.attachment.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("BoQText", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("BoQText", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -3514,8 +3694,8 @@ fn field_coinfo(
 
 pub fn write_coinfo(w: &mut Writer<'_>, value: &COInfo, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("COInfo");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::CONo => value.co_no.is_some(),
             Name::COPhase => value.co_phase.is_some(),
             Name::COStatus => value.co_status.is_some(),
@@ -3524,9 +3704,18 @@ pub fn write_coinfo(w: &mut Writer<'_>, value: &COInfo, tag: &str) -> Result<(),
             Name::RefBoQCOInfo => value.ref_boq_co_info.is_some(),
             Name::CODate => value.co_date.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("COInfo", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("COInfo", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -3608,14 +3797,23 @@ fn field_cpvcode(
 
 pub fn write_cpvcode(w: &mut Writer<'_>, value: &CPVCode, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("CPVCode");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::CPVNo => value.cpv_no.is_some(),
             Name::CPVText => value.cpv_text.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("CPVCode", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("CPVCode", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -3828,8 +4026,8 @@ fn field_ctr(
 
 pub fn write_ctr(w: &mut Writer<'_>, value: &CTR, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("CTR");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Address => value.address.is_some(),
             Name::DPNo => value.dp_no.is_some(),
             Name::AwardNo => value.award_no.is_some(),
@@ -3843,9 +4041,18 @@ pub fn write_ctr(w: &mut Writer<'_>, value: &CTR, tag: &str) -> Result<(), Write
             Name::InsAs => value.ins_as.is_some(),
             Name::AddText => !value.add_text.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("CTR", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("CTR", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -3976,15 +4183,24 @@ pub fn write_cashdiscount(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("CashDiscount");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::CashDiscDays => value.cash_disc_days.is_some(),
             Name::CashDiscDate => value.cash_disc_date.is_some(),
             Name::DiscountPcnt => value.discount_pcnt.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("CashDiscount", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("CashDiscount", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -4081,15 +4297,24 @@ pub fn write_catalogref(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("CatalogRef");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::TextValue => value.text_value.is_some(),
             Name::NumValue => value.num_value.is_some(),
             Name::DateValue => value.date_value.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("CatalogRef", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("CatalogRef", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -4174,14 +4399,23 @@ pub fn write_catalogrefnumvalue(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("CatalogRefNumValue");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::CatalogReference => value.catalog_reference.is_some(),
             Name::Expression => value.expression.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("CatalogRefNumValue", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("CatalogRefNumValue", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -4266,13 +4500,22 @@ pub fn write_catalogrefnumvalueexpression(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("CatalogRefNumValueExpression");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Line => !value.line.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("CatalogRefNumValueExpression", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("CatalogRefNumValueExpression", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -4410,8 +4653,8 @@ pub fn write_categoryelement(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("CategoryElement");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::EleNo => value.ele_no.is_some(),
             Name::Descr => value.descr.is_some(),
             Name::CatID => value.cat_id.is_some(),
@@ -4420,9 +4663,18 @@ pub fn write_categoryelement(
             Name::Property => !value.property.is_empty(),
             Name::Markup => value.markup.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("CategoryElement", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("CategoryElement", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -4501,13 +4753,22 @@ pub fn write_categoryelementref(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("CategoryElementRef");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Portion => value.portion.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("CategoryElementRef", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("CategoryElementRef", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -4589,15 +4850,24 @@ fn field_checknote(
 
 pub fn write_checknote(w: &mut Writer<'_>, value: &CheckNote, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("CheckNote");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::State => value.state.is_some(),
             Name::CheckDate => value.check_date.is_some(),
             Name::Annotation => value.annotation.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("CheckNote", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("CheckNote", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -4701,16 +4971,25 @@ fn field_cnstsite(
 
 pub fn write_cnstsite(w: &mut Writer<'_>, value: &CnstSite, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("CnstSite");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Address => value.address.is_some(),
             Name::CnstSiteIDNo => value.cnst_site_id_no.is_some(),
             Name::CnstSiteName => value.cnst_site_name.is_some(),
             Name::AddText => !value.add_text.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("CnstSite", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("CnstSite", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -4784,14 +5063,23 @@ pub fn write_communication(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("Communication");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Question => value.question.is_some(),
             Name::Response => value.response.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Communication", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Communication", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -4926,16 +5214,25 @@ pub fn write_completetext(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("CompleteText");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::ComplTSA => value.compl_tsa.is_some(),
             Name::ComplTSB => value.compl_tsb.is_some(),
             Name::DetailTxt => value.detail_txt.is_some(),
             Name::OutlineText => value.outline_text.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("CompleteText", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("CompleteText", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -5011,14 +5308,23 @@ pub fn write_consortiummember(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("ConsortiumMember");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Description => value.description.is_some(),
             Name::Address => value.address.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("ConsortiumMember", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("ConsortiumMember", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -5107,14 +5413,23 @@ pub fn write_contrvalcode(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("ContrValCode");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Percent => value.percent.is_some(),
             Name::Number => value.number.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("ContrValCode", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("ContrValCode", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -5219,16 +5534,25 @@ pub fn write_costapproach(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("CostApproach");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::CostApproachQty => value.cost_approach_qty.is_some(),
             Name::CostApproachQU => value.cost_approach_qu.is_some(),
             Name::Performance => value.performance.is_some(),
             Name::Value => value.value.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("CostApproach", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("CostApproach", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -5518,8 +5842,8 @@ pub fn write_costelement(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("CostElement");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::EleNo => value.ele_no.is_some(),
             Name::Descr => value.descr.is_some(),
             Name::CatID => value.cat_id.is_some(),
@@ -5539,9 +5863,18 @@ pub fn write_costelement(
             Name::RefGroup => !value.ref_group.is_empty(),
             Name::CostElement => !value.cost_element.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("CostElement", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("CostElement", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -5653,13 +5986,22 @@ pub fn write_costelementref(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("CostElementRef");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Portion => value.portion.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("CostElementRef", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("CostElementRef", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -5741,15 +6083,24 @@ fn field_costtype(
 
 pub fn write_costtype(w: &mut Writer<'_>, value: &CostType, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("CostType");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::CostDescription => value.cost_description.is_some(),
             Name::CostTypeUnit => value.cost_type_unit.is_some(),
             Name::Markup => value.markup.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("CostType", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("CostType", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -5851,16 +6202,25 @@ fn field_ctlg(
 
 pub fn write_ctlg(w: &mut Writer<'_>, value: &Ctlg, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("Ctlg");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::CtlgID => value.ctlg_id.is_some(),
             Name::CtlgType => value.ctlg_type.is_some(),
             Name::CtlgName => value.ctlg_name.is_some(),
             Name::CtlgAssignType => value.ctlg_assign_type.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Ctlg", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Ctlg", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -5949,15 +6309,24 @@ pub fn write_ctlgassign(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("CtlgAssign");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::CtlgID => value.ctlg_id.is_some(),
             Name::CtlgCode => value.ctlg_code.is_some(),
             Name::Quantity => value.quantity.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("CtlgAssign", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("CtlgAssign", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -6047,14 +6416,23 @@ pub fn write_customerinfo(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("CustomerInfo");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::IDNo => value.id_no.is_some(),
             Name::Address => value.address.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("CustomerInfo", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("CustomerInfo", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -6124,14 +6502,23 @@ pub fn write_dateofinformation(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("DateOfInformation");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Date => value.date.is_some(),
             Name::AddText => !value.add_text.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("DateOfInformation", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("DateOfInformation", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -6202,14 +6589,23 @@ pub fn write_deliveryplaceinfo(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("DeliveryPlaceInfo");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::IDNo => value.id_no.is_some(),
             Name::Address => value.address.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("DeliveryPlaceInfo", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("DeliveryPlaceInfo", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -6342,8 +6738,8 @@ pub fn write_description(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("Description");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::STLBBau => value.stlb_bau.is_some(),
             Name::StLNo => value.st_l_no.is_some(),
             Name::WICNo => value.wic_no.is_some(),
@@ -6351,9 +6747,18 @@ pub fn write_description(
             Name::OutlineText => value.outline_text.is_some(),
             Name::SubmissionComment => value.submission_comment.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Description", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Description", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -6459,16 +6864,25 @@ fn field_dimension(
 
 pub fn write_dimension(w: &mut Writer<'_>, value: &Dimension, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("Dimension");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::UM => value.um.is_some(),
             Name::Height => value.height.is_some(),
             Name::Width => value.width.is_some(),
             Name::Length => value.length.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Dimension", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Dimension", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -6638,8 +7052,8 @@ pub fn write_dimensionelement(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("DimensionElement");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::EleNo => value.ele_no.is_some(),
             Name::Descr => value.descr.is_some(),
             Name::CatID => value.cat_id.is_some(),
@@ -6650,9 +7064,18 @@ pub fn write_dimensionelement(
             Name::QU => value.qu.is_some(),
             Name::Markup => value.markup.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("DimensionElement", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("DimensionElement", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -6737,13 +7160,22 @@ pub fn write_dimensionelementref(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("DimensionElementRef");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Portion => value.portion.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("DimensionElementRef", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("DimensionElementRef", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -6854,17 +7286,26 @@ fn field_ecbkdn(
 
 pub fn write_ecbkdn(w: &mut Writer<'_>, value: &ECBkdn, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("ECBkdn");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Type => value.ty.is_some(),
             Name::LblOutline => value.lbl_outline.is_some(),
             Name::Length => value.length.is_some(),
             Name::Num => value.num.is_some(),
             Name::Alignment => value.alignment.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("ECBkdn", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("ECBkdn", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -6968,16 +7409,25 @@ fn field_ecbody(
 
 pub fn write_ecbody(w: &mut Writer<'_>, value: &ECBody, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("ECBody");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::ECCtgy => !value.ec_ctgy.is_empty(),
             Name::CostElement => !value.cost_element.is_empty(),
             Name::DimensionElement => !value.dimension_element.is_empty(),
             Name::CategoryElement => !value.category_element.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("ECBody", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("ECBody", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -7137,8 +7587,8 @@ fn field_ecctgy(
 
 pub fn write_ecctgy(w: &mut Writer<'_>, value: &ECCtgy, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("ECCtgy");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::EleNo => value.ele_no.is_some(),
             Name::Descr => value.descr.is_some(),
             Name::ECBody => value.ec_body.is_some(),
@@ -7147,9 +7597,18 @@ pub fn write_ecctgy(w: &mut Writer<'_>, value: &ECCtgy, tag: &str) -> Result<(),
             Name::Totals => value.totals.is_some(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("ECCtgy", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("ECCtgy", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -7278,17 +7737,26 @@ fn field_ecctlg(
 
 pub fn write_ecctlg(w: &mut Writer<'_>, value: &ECCtlg, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("ECCtlg");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::CtlgID => value.ctlg_id.is_some(),
             Name::CtlgRef => value.ctlg_ref.is_some(),
             Name::CtlgType => value.ctlg_type.is_some(),
             Name::CtlgName => value.ctlg_name.is_some(),
             Name::CtlgDescription => value.ctlg_description.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("ECCtlg", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("ECCtlg", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -7539,8 +8007,8 @@ fn field_ecinfo(
 
 pub fn write_ecinfo(w: &mut Writer<'_>, value: &ECInfo, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("ECInfo");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Name => value.name.is_some(),
             Name::LblEC => value.lbl_ec.is_some(),
             Name::ECType => value.ec_type.is_some(),
@@ -7557,9 +8025,18 @@ pub fn write_ecinfo(w: &mut Writer<'_>, value: &ECInfo, tag: &str) -> Result<(),
             Name::Totals => value.totals.is_some(),
             Name::AddText => !value.add_text.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("ECInfo", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("ECInfo", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -7692,16 +8169,25 @@ pub fn write_elementalcosting(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("ElementalCosting");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::DP => value.dp.is_some(),
             Name::BoQ => !value.boq.is_empty(),
             Name::ECInfo => value.ec_info.is_some(),
             Name::ECBody => value.ec_body.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("ElementalCosting", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("ElementalCosting", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -7881,8 +8367,8 @@ fn field_ftext(
 
 pub fn write_ftext(w: &mut Writer<'_>, value: &FText, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("FText");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::P => !value.p.is_empty(),
             Name::Div => !value.div.is_empty(),
             Name::Span => !value.span.is_empty(),
@@ -7893,9 +8379,18 @@ pub fn write_ftext(w: &mut Writer<'_>, value: &FText, tag: &str) -> Result<(), W
             Name::Page => !value.page.is_empty(),
             Name::Image => !value.image.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("FText", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("FText", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -8132,8 +8627,8 @@ fn field_ftexttc(
 
 pub fn write_ftexttc(w: &mut Writer<'_>, value: &FTextTC, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("FTextTC");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::P => !value.p.is_empty(),
             Name::Div => !value.div.is_empty(),
             Name::Span => !value.span.is_empty(),
@@ -8145,9 +8640,18 @@ pub fn write_ftexttc(w: &mut Writer<'_>, value: &FTextTC, tag: &str) -> Result<(
             Name::Image => !value.image.is_empty(),
             Name::TextComplement => !value.text_complement.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("FTextTC", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("FTextTC", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -8357,8 +8861,8 @@ fn field_gaeb(
 
 pub fn write_gaeb(w: &mut Writer<'_>, value: &GAEB, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("GAEB");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::GAEBInfo => value.gaeb_info.is_some(),
             Name::PrjInfo => value.prj_info.is_some(),
             Name::Award => value.award.is_some(),
@@ -8367,9 +8871,18 @@ pub fn write_gaeb(w: &mut Writer<'_>, value: &GAEB, tag: &str) -> Result<(), Wri
             Name::AddText => !value.add_text.is_empty(),
             Name::Signature => !value.signature.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("GAEB", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("GAEB", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -8482,16 +8995,25 @@ fn field_gaebcost(
 
 pub fn write_gaebcost(w: &mut Writer<'_>, value: &GAEBCost, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("GAEBCost");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::GAEBInfo => value.gaeb_info.is_some(),
             Name::PrjInfo => value.prj_info.is_some(),
             Name::ElementalCosting => value.elemental_costing.is_some(),
             Name::AddText => !value.add_text.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("GAEBCost", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("GAEBCost", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -8640,8 +9162,8 @@ fn field_gaebinfo(
 
 pub fn write_gaebinfo(w: &mut Writer<'_>, value: &GAEBInfo, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("GAEBInfo");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Version => value.version.is_some(),
             Name::VersDate => value.vers_date.is_some(),
             Name::Date => value.date.is_some(),
@@ -8650,9 +9172,18 @@ pub fn write_gaebinfo(w: &mut Writer<'_>, value: &GAEBInfo, tag: &str) -> Result
             Name::ProgName => value.prog_name.is_some(),
             Name::Certific => value.certific.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("GAEBInfo", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("GAEBInfo", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -8805,8 +9336,8 @@ pub fn write_gaebinfoqd(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("GAEBInfoQD");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Version => value.version.is_some(),
             Name::VersDate => value.vers_date.is_some(),
             Name::Date => value.date.is_some(),
@@ -8815,9 +9346,18 @@ pub fn write_gaebinfoqd(
             Name::ProgName => value.prog_name.is_some(),
             Name::Certific => value.certific.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("GAEBInfoQD", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("GAEBInfoQD", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -8898,14 +9438,23 @@ fn field_gaebqd(
 
 pub fn write_gaebqd(w: &mut Writer<'_>, value: &GAEBQD, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("GAEBQD");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::GAEBInfo => value.gaeb_info.is_some(),
             Name::QtyDeterm => value.qty_determ.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("GAEBQD", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("GAEBQD", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -9061,8 +9610,8 @@ fn field_houritem(
 
 pub fn write_houritem(w: &mut Writer<'_>, value: &HourItem, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("HourItem");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::MarkupIt => value.markup_it.is_some(),
             Name::Qty => value.qty.is_some(),
             Name::PredQty => value.pred_qty.is_some(),
@@ -9072,9 +9621,18 @@ pub fn write_houritem(w: &mut Writer<'_>, value: &HourItem, tag: &str) -> Result
             Name::Description => value.description.is_some(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HourItem", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HourItem", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -9168,14 +9726,23 @@ fn field_htmldiv(
 
 pub fn write_htmldiv(w: &mut Writer<'_>, value: &HtmlDiv, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlDiv");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Span => !value.span.is_empty(),
             Name::Br => !value.br.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlDiv", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlDiv", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -9275,15 +9842,24 @@ fn field_htmldivtc(
 
 pub fn write_htmldivtc(w: &mut Writer<'_>, value: &HtmlDivTC, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlDivTC");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Span => !value.span.is_empty(),
             Name::Br => !value.br.is_empty(),
             Name::TextComplement => !value.text_complement.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlDivTC", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlDivTC", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -9422,8 +9998,8 @@ fn field_htmlli(
 
 pub fn write_htmlli(w: &mut Writer<'_>, value: &HtmlLi, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlLi");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::P => !value.p.is_empty(),
             Name::Div => !value.div.is_empty(),
             Name::Span => !value.span.is_empty(),
@@ -9431,9 +10007,18 @@ pub fn write_htmlli(w: &mut Writer<'_>, value: &HtmlLi, tag: &str) -> Result<(),
             Name::Ul => !value.ul.is_empty(),
             Name::Ol => !value.ol.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlLi", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlLi", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -9612,8 +10197,8 @@ fn field_htmllitc(
 
 pub fn write_htmllitc(w: &mut Writer<'_>, value: &HtmlLiTC, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlLiTC");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::P => !value.p.is_empty(),
             Name::Div => !value.div.is_empty(),
             Name::Span => !value.span.is_empty(),
@@ -9622,9 +10207,18 @@ pub fn write_htmllitc(w: &mut Writer<'_>, value: &HtmlLiTC, tag: &str) -> Result
             Name::Ol => !value.ol.is_empty(),
             Name::TextComplement => !value.text_complement.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlLiTC", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlLiTC", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -9747,15 +10341,24 @@ fn field_htmlol(
 
 pub fn write_htmlol(w: &mut Writer<'_>, value: &HtmlOl, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlOl");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Li => !value.li.is_empty(),
             Name::Ul => !value.ul.is_empty(),
             Name::Ol => !value.ol.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlOl", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlOl", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -9837,13 +10440,22 @@ fn field_htmloltc(
 
 pub fn write_htmloltc(w: &mut Writer<'_>, value: &HtmlOlTC, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlOlTC");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Li => !value.li.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlOlTC", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlOlTC", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -9928,15 +10540,24 @@ fn field_htmlp(
 
 pub fn write_htmlp(w: &mut Writer<'_>, value: &HtmlP, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlP");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Span => !value.span.is_empty(),
             Name::Br => !value.br.is_empty(),
             Name::ImageLower => !value.image.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlP", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlP", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -10031,14 +10652,23 @@ pub fn write_htmlpmltext(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlPMLText");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Span => !value.span.is_empty(),
             Name::Br => !value.br.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlPMLText", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlPMLText", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -10150,16 +10780,25 @@ fn field_htmlptc(
 
 pub fn write_htmlptc(w: &mut Writer<'_>, value: &HtmlPTC, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlPTC");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Span => !value.span.is_empty(),
             Name::Br => !value.br.is_empty(),
             Name::ImageLower => !value.image.is_empty(),
             Name::TextComplement => !value.text_complement.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlPTC", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlPTC", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -10256,13 +10895,22 @@ fn field_htmltable(
 
 pub fn write_htmltable(w: &mut Writer<'_>, value: &HtmlTable, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlTable");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Tr => !value.tr.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlTable", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlTable", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -10345,13 +10993,22 @@ pub fn write_htmltabletc(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlTableTC");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Tr => !value.tr.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlTableTC", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlTableTC", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -10518,8 +11175,8 @@ fn field_htmltd(
 
 pub fn write_htmltd(w: &mut Writer<'_>, value: &HtmlTd, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlTd");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::P => !value.p.is_empty(),
             Name::Div => !value.div.is_empty(),
             Name::Span => !value.span.is_empty(),
@@ -10528,9 +11185,18 @@ pub fn write_htmltd(w: &mut Writer<'_>, value: &HtmlTd, tag: &str) -> Result<(),
             Name::Ol => !value.ol.is_empty(),
             Name::Ul => !value.ul.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlTd", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlTd", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -10746,8 +11412,8 @@ fn field_htmltdtc(
 
 pub fn write_htmltdtc(w: &mut Writer<'_>, value: &HtmlTdTC, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlTdTC");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::P => !value.p.is_empty(),
             Name::Div => !value.div.is_empty(),
             Name::Span => !value.span.is_empty(),
@@ -10757,9 +11423,18 @@ pub fn write_htmltdtc(w: &mut Writer<'_>, value: &HtmlTdTC, tag: &str) -> Result
             Name::Ul => !value.ul.is_empty(),
             Name::TextComplement => !value.text_complement.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlTdTC", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlTdTC", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -10962,8 +11637,8 @@ fn field_htmlth(
 
 pub fn write_htmlth(w: &mut Writer<'_>, value: &HtmlTh, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlTh");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::P => !value.p.is_empty(),
             Name::Div => !value.div.is_empty(),
             Name::Span => !value.span.is_empty(),
@@ -10972,9 +11647,18 @@ pub fn write_htmlth(w: &mut Writer<'_>, value: &HtmlTh, tag: &str) -> Result<(),
             Name::Ul => !value.ul.is_empty(),
             Name::Ol => !value.ol.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlTh", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlTh", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -11094,14 +11778,23 @@ fn field_htmltr(
 
 pub fn write_htmltr(w: &mut Writer<'_>, value: &HtmlTr, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlTr");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Th => !value.th.is_empty(),
             Name::Td => !value.td.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlTr", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlTr", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -11195,14 +11888,23 @@ fn field_htmltrtc(
 
 pub fn write_htmltrtc(w: &mut Writer<'_>, value: &HtmlTrTC, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlTrTC");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Th => !value.th.is_empty(),
             Name::Td => !value.td.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlTrTC", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlTrTC", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -11308,15 +12010,24 @@ fn field_htmlul(
 
 pub fn write_htmlul(w: &mut Writer<'_>, value: &HtmlUl, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlUl");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Li => !value.li.is_empty(),
             Name::Ul => !value.ul.is_empty(),
             Name::Ol => !value.ol.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlUl", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlUl", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -11395,13 +12106,22 @@ fn field_htmlultc(
 
 pub fn write_htmlultc(w: &mut Writer<'_>, value: &HtmlUlTC, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("HtmlUlTC");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Li => !value.li.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("HtmlUlTC", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("HtmlUlTC", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -11531,15 +12251,24 @@ pub fn write_indivagrinfo(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("IndivAgrInfo");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::InfoPerson => value.info_person.is_some(),
             Name::AttestPerson => value.attest_person.is_some(),
             Name::CnstSiteLoc => value.cnst_site_loc.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("IndivAgrInfo", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("IndivAgrInfo", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -11621,15 +12350,24 @@ fn field_insas(
 
 pub fn write_insas(w: &mut Writer<'_>, value: &InsAs, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("InsAs");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::InsAsName => value.ins_as_name.is_some(),
             Name::InsAsDate => value.ins_as_date.is_some(),
             Name::InsAsNo => value.ins_as_no.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("InsAs", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("InsAs", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -11961,8 +12699,8 @@ fn field_invoice(
 
 pub fn write_invoice(w: &mut Writer<'_>, value: &Invoice, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("Invoice");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::DP => value.dp.is_some(),
             Name::OWN => value.own.is_some(),
             Name::Requester => !value.requester.is_empty(),
@@ -11984,9 +12722,18 @@ pub fn write_invoice(w: &mut Writer<'_>, value: &Invoice, tag: &str) -> Result<(
             Name::InvoiceMadeOut => !value.invoice_made_out.is_empty(),
             Name::TotalGross => value.total_gross.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Invoice", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Invoice", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -12126,14 +12873,23 @@ pub fn write_invoicecreator(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("InvoiceCreator");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Address => value.address.is_some(),
             Name::TaxNo => value.tax_no.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("InvoiceCreator", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("InvoiceCreator", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -12315,8 +13071,8 @@ pub fn write_invoiceheader(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("InvoiceHeader");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::InvoiceNo => value.invoice_no.is_some(),
             Name::RefInvoiceNo => value.ref_invoice_no.is_some(),
             Name::InvoiceDate => value.invoice_date.is_some(),
@@ -12327,9 +13083,18 @@ pub fn write_invoiceheader(
             Name::ServiceProvisionStartDate => value.service_provision_start_date.is_some(),
             Name::ServiceProvisionEndDate => value.service_provision_end_date.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("InvoiceHeader", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("InvoiceHeader", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -12543,8 +13308,8 @@ pub fn write_invoiceinfo(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("InvoiceInfo");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::InvoiceNo => value.invoice_no.is_some(),
             Name::InvoiceDate => value.invoice_date.is_some(),
             Name::Cur => value.cur.is_some(),
@@ -12556,9 +13321,18 @@ pub fn write_invoiceinfo(
             Name::InvoiceTotalsGross => value.invoice_totals_gross.is_some(),
             Name::CashDiscount => !value.cash_discount.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("InvoiceInfo", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("InvoiceInfo", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -12701,17 +13475,26 @@ pub fn write_invoicemadeout(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("InvoiceMadeOut");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::TotalVAT => value.total_vat.is_some(),
             Name::Total => value.total.is_some(),
             Name::InvoiceDate => value.invoice_date.is_some(),
             Name::InvoiceType => value.invoice_type.is_some(),
             Name::InvoiceNo => value.invoice_no.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("InvoiceMadeOut", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("InvoiceMadeOut", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -12791,14 +13574,23 @@ pub fn write_invoicerecipient(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("InvoiceRecipient");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Address => value.address.is_some(),
             Name::TaxNo => value.tax_no.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("InvoiceRecipient", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("InvoiceRecipient", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -12917,17 +13709,26 @@ pub fn write_invoiceshare(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("InvoiceShare");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::InvoiceShareType => value.invoice_share_type.is_some(),
             Name::Description => value.description.is_some(),
             Name::Total => value.total.is_some(),
             Name::Percent => value.percent.is_some(),
             Name::CounterClaim => value.counter_claim.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("InvoiceShare", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("InvoiceShare", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -13793,8 +14594,8 @@ fn field_item(
 
 pub fn write_item(w: &mut Writer<'_>, value: &Item, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("Item");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::ALNGroupNo => value.aln_group_no.is_some(),
             Name::ALNSerNo => value.aln_ser_no.is_some(),
             Name::Accepted => value.accepted.is_some(),
@@ -13854,9 +14655,18 @@ pub fn write_item(w: &mut Writer<'_>, value: &Item, tag: &str) -> Result<(), Wri
             Name::BidUpDownReq => value.bid_up_down_req.is_some(),
             Name::BidUpDownPct => value.bid_up_down_pct.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Item", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Item", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -14099,14 +14909,23 @@ fn field_itemqd(
 
 pub fn write_itemqd(w: &mut Writer<'_>, value: &ItemQD, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("ItemQD");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::QtyDeterm => value.qty_determ.is_some(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("ItemQD", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("ItemQD", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -14230,17 +15049,26 @@ fn field_itemlist(
 
 pub fn write_itemlist(w: &mut Writer<'_>, value: &Itemlist, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("Itemlist");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Remark => !value.remark.is_empty(),
             Name::PerfDescr => !value.perf_descr.is_empty(),
             Name::Item => !value.item.is_empty(),
             Name::MarkupItem => !value.markup_item.is_empty(),
             Name::MastAgrItems => !value.mast_agr_items.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Itemlist", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Itemlist", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -14331,13 +15159,22 @@ pub fn write_itemlistqd(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("ItemlistQD");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Item => !value.item.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("ItemlistQD", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("ItemlistQD", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -14442,16 +15279,25 @@ fn field_lotgrp(
 
 pub fn write_lotgrp(w: &mut Writer<'_>, value: &LotGrp, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("LotGrp");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::LotGrNo => value.lot_gr_no.is_some(),
             Name::RefLotNo => !value.ref_lot_no.is_empty(),
             Name::Totals => value.totals.is_some(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("LotGrp", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("LotGrp", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -14551,16 +15397,25 @@ fn field_mltext(
 
 pub fn write_mltext(w: &mut Writer<'_>, value: &MLText, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("MLText");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::P => !value.p.is_empty(),
             Name::Div => !value.div.is_empty(),
             Name::Span => !value.span.is_empty(),
             Name::Br => !value.br.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("MLText", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("MLText", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -14716,8 +15571,8 @@ fn field_maintinfo(
 
 pub fn write_maintinfo(w: &mut Writer<'_>, value: &MaintInfo, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("MaintInfo");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::MaintType => value.maint_type.is_some(),
             Name::ProcessType => value.process_type.is_some(),
             Name::ContrTransDate => value.contr_trans_date.is_some(),
@@ -14725,9 +15580,18 @@ pub fn write_maintinfo(w: &mut Writer<'_>, value: &MaintInfo, tag: &str) -> Resu
             Name::ContrLaw => value.contr_law.is_some(),
             Name::Deadline => value.deadline.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("MaintInfo", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("MaintInfo", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -15110,8 +15974,8 @@ pub fn write_markupitem(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("MarkupItem");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::ALNGroupNo => value.aln_group_no.is_some(),
             Name::ALNSerNo => value.aln_ser_no.is_some(),
             Name::Accepted => value.accepted.is_some(),
@@ -15136,9 +16000,18 @@ pub fn write_markupitem(
             Name::AlterBidStatus => value.alter_bid_status.is_some(),
             Name::CheckNote => !value.check_note.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("MarkupItem", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("MarkupItem", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -15315,16 +16188,25 @@ pub fn write_markupitemctr(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("MarkupItemCTR");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::RefItem => !value.ref_item.is_empty(),
             Name::Markup => value.markup.is_some(),
             Name::Description => value.description.is_some(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("MarkupItemCTR", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("MarkupItemCTR", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -15444,16 +16326,25 @@ pub fn write_markupitemown(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("MarkupItemOWN");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::RefItem => !value.ref_item.is_empty(),
             Name::Markup => value.markup.is_some(),
             Name::Description => value.description.is_some(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("MarkupItemOWN", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("MarkupItemOWN", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -15539,14 +16430,23 @@ pub fn write_markupsubqty(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("MarkupSubQty");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::RefItem => value.ref_item.is_some(),
             Name::SubQty => value.sub_qty.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("MarkupSubQty", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("MarkupSubQty", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -15819,8 +16719,8 @@ pub fn write_mastagrinfo(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("MastAgrInfo");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::BidUpDown => value.bid_up_down.is_some(),
             Name::MastAgrLbl => value.mast_agr_lbl.is_some(),
             Name::MastAgrNo => value.mast_agr_no.is_some(),
@@ -15838,9 +16738,18 @@ pub fn write_mastagrinfo(
             Name::AwardAgencyAdr => value.award_agency_adr.is_some(),
             Name::CostResponsible => value.cost_responsible.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("MastAgrInfo", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("MastAgrInfo", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -15987,16 +16896,25 @@ pub fn write_mastagritems(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("MastAgrItems");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::HourItem => !value.hour_item.is_empty(),
             Name::MaterialItem => !value.material_item.is_empty(),
             Name::MarkupItemOWN => !value.markup_item_own.is_empty(),
             Name::MarkupItemCTR => !value.markup_item_ctr.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("MastAgrItems", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("MastAgrItems", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -16122,16 +17040,25 @@ pub fn write_materialitem(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("MaterialItem");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::PredIT => value.pred_it.is_some(),
             Name::Description => value.description.is_some(),
             Name::BidUpDownPct => value.bid_up_down_pct.is_some(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("MaterialItem", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("MaterialItem", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -16293,8 +17220,8 @@ pub fn write_metalresources(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("MetalResources");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Resource => value.resource.is_some(),
             Name::WeigthPartValue => value.weigth_part_value.is_some(),
             Name::WPU => value.wpu.is_some(),
@@ -16303,9 +17230,18 @@ pub fn write_metalresources(
             Name::BaseDELQuotation => value.base_del_quotation.is_some(),
             Name::CurDELQuotation => value.cur_del_quotation.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("MetalResources", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("MetalResources", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -16421,16 +17357,25 @@ fn field_notifsite(
 
 pub fn write_notifsite(w: &mut Writer<'_>, value: &NotifSite, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("NotifSite");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Address => value.address.is_some(),
             Name::NotifSiteIDNo => value.notif_site_id_no.is_some(),
             Name::NotifSiteName => value.notif_site_name.is_some(),
             Name::AddText => !value.add_text.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("NotifSite", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("NotifSite", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -16579,8 +17524,8 @@ fn field_own(
 
 pub fn write_own(w: &mut Writer<'_>, value: &OWN, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("OWN");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Address => value.address.is_some(),
             Name::DPNo => value.dp_no.is_some(),
             Name::AwardNo => value.award_no.is_some(),
@@ -16589,9 +17534,18 @@ pub fn write_own(w: &mut Writer<'_>, value: &OWN, tag: &str) -> Result<(), Write
             Name::CntryName => value.cntry_name.is_some(),
             Name::AddText => !value.add_text.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("OWN", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("OWN", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -16767,8 +17721,8 @@ fn field_order(
 
 pub fn write_order(w: &mut Writer<'_>, value: &Order, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("Order");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::DP => value.dp.is_some(),
             Name::OrderInfo => value.order_info.is_some(),
             Name::SupplierInfo => value.supplier_info.is_some(),
@@ -16778,9 +17732,18 @@ pub fn write_order(w: &mut Writer<'_>, value: &Order, tag: &str) -> Result<(), W
             Name::InvoiceInfo => value.invoice_info.is_some(),
             Name::OrderItem => !value.order_item.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Order", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Order", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -17352,8 +18315,8 @@ fn field_orderinfo(
 
 pub fn write_orderinfo(w: &mut Writer<'_>, value: &OrderInfo, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("OrderInfo");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Inquiry => value.inquiry.is_some(),
             Name::CallOrder => value.call_order.is_some(),
             Name::RepOrder => value.rep_order.is_some(),
@@ -17390,9 +18353,18 @@ pub fn write_orderinfo(w: &mut Writer<'_>, value: &OrderInfo, tag: &str) -> Resu
             Name::ProvisionDate => value.provision_date.is_some(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("OrderInfo", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("OrderInfo", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -18141,8 +19113,8 @@ fn field_orderitem(
 
 pub fn write_orderitem(w: &mut Writer<'_>, value: &OrderItem, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("OrderItem");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::ItemChara => value.item_chara.is_some(),
             Name::ItemType => value.item_type.is_some(),
             Name::RepOrder => value.rep_order.is_some(),
@@ -18187,9 +19159,18 @@ pub fn write_orderitem(w: &mut Writer<'_>, value: &OrderItem, tag: &str) -> Resu
             Name::MetalResources => !value.metal_resources.is_empty(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("OrderItem", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("OrderItem", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -18386,14 +19367,23 @@ pub fn write_ordertotals(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("OrderTotals");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::VATRate => value.vat_rate.is_some(),
             Name::ItemTotal => value.item_total.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("OrderTotals", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("OrderTotals", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -18472,15 +19462,24 @@ fn field_outltxt(
 
 pub fn write_outltxt(w: &mut Writer<'_>, value: &OutlTxt, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("OutlTxt");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Style => value.style.is_some(),
             Name::TextOutlTxt => !value.text_outl_txt.is_empty(),
             Name::TextComplement => !value.text_complement.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("OutlTxt", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("OutlTxt", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -18572,14 +19571,23 @@ pub fn write_outlinetext(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("OutlineText");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::OutlTSA => value.outl_tsa.is_some(),
             Name::OutlTxt => value.outl_txt.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("OutlineText", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("OutlineText", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -18754,8 +19762,8 @@ pub fn write_paymentmade(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("PaymentMade");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::TotalVAT => value.total_vat.is_some(),
             Name::DiscountAmt => value.discount_amt.is_some(),
             Name::DiscountVATAmt => value.discount_vat_amt.is_some(),
@@ -18766,9 +19774,18 @@ pub fn write_paymentmade(
             Name::PaymentNo => value.payment_no.is_some(),
             Name::PaymentNote => value.payment_note.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("PaymentMade", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("PaymentMade", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -18917,8 +19934,8 @@ fn field_perfdescr(
 
 pub fn write_perfdescr(w: &mut Writer<'_>, value: &PerfDescr, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("PerfDescr");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::PerfNo => value.perf_no.is_some(),
             Name::PerfLbl => value.perf_lbl.is_some(),
             Name::Description => !value.description.is_empty(),
@@ -18926,9 +19943,18 @@ pub fn write_perfdescr(w: &mut Writer<'_>, value: &PerfDescr, tag: &str) -> Resu
             Name::AlterBidStatus => value.alter_bid_status.is_some(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("PerfDescr", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("PerfDescr", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -19089,8 +20115,8 @@ pub fn write_perfdescription(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("PerfDescription");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             Name::STLBBau => value.stlb_bau.is_some(),
             Name::StLNo => value.st_l_no.is_some(),
@@ -19099,9 +20125,18 @@ pub fn write_perfdescription(
             Name::OutlineText => value.outline_text.is_some(),
             Name::SubmissionComment => value.submission_comment.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("PerfDescription", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("PerfDescription", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -19190,14 +20225,23 @@ pub fn write_plannerinfo(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("PlannerInfo");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::IDNo => value.id_no.is_some(),
             Name::Address => value.address.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("PlannerInfo", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("PlannerInfo", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -19386,8 +20430,8 @@ pub fn write_pricemodification(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("PriceModification");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Type => value.ty.is_some(),
             Name::SubQty => value.sub_qty.is_some(),
             Name::Threshold => value.threshold.is_some(),
@@ -19399,9 +20443,18 @@ pub fn write_pricemodification(
             Name::MarkupAbs => value.markup_abs.is_some(),
             Name::Multiplicator => value.multiplicator.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("PriceModification", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("PriceModification", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -19649,8 +20702,8 @@ fn field_prjinfo(
 
 pub fn write_prjinfo(w: &mut Writer<'_>, value: &PrjInfo, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("PrjInfo");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::NamePrj => value.name_prj.is_some(),
             Name::PrjID => value.prj_id.is_some(),
             Name::LblPrj => value.lbl_prj.is_some(),
@@ -19664,9 +20717,18 @@ pub fn write_prjinfo(w: &mut Writer<'_>, value: &PrjInfo, tag: &str) -> Result<(
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             Name::Communication => !value.communication.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("PrjInfo", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("PrjInfo", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -19762,14 +20824,23 @@ fn field_prjinfoqd(
 
 pub fn write_prjinfoqd(w: &mut Writer<'_>, value: &PrjInfoQD, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("PrjInfoQD");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::RefPrjName => value.ref_prj_name.is_some(),
             Name::RefPrjID => value.ref_prj_id.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("PrjInfoQD", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("PrjInfoQD", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -19848,15 +20919,24 @@ fn field_product(
 
 pub fn write_product(w: &mut Writer<'_>, value: &Product, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("Product");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Address => value.address.is_some(),
             Name::AddText => !value.add_text.is_empty(),
             Name::Article => !value.article.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Product", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Product", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -19941,15 +21021,24 @@ pub fn write_projectboqitemref(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("ProjectBoQItemRef");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::BoQName => value.boq_name.is_some(),
             Name::BoQItemRNo => value.boq_item_rno.is_some(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("ProjectBoQItemRef", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("ProjectBoQItemRef", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -20094,8 +21183,8 @@ fn field_property(
 
 pub fn write_property(w: &mut Writer<'_>, value: &Property, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("Property");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Name => value.name.is_some(),
             Name::LblProp => value.lbl_prop.is_some(),
             Name::ArithmeticQuantityApproach => value.arithmetic_quantity_approach.is_some(),
@@ -20104,9 +21193,18 @@ pub fn write_property(w: &mut Writer<'_>, value: &Property, tag: &str) -> Result
             Name::Type => value.ty.is_some(),
             Name::CADID => value.cad_id.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Property", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Property", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -20195,14 +21293,23 @@ pub fn write_qdetermitem(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("QDetermItem");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::QTakeoff => value.q_takeoff.is_some(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("QDetermItem", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("QDetermItem", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -20284,14 +21391,23 @@ fn field_qtydeterm(
 
 pub fn write_qtydeterm(w: &mut Writer<'_>, value: &QtyDeterm, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("QtyDeterm");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Qty => value.qty.is_some(),
             Name::QDetermItem => !value.q_determ_item.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("QtyDeterm", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("QtyDeterm", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -20459,8 +21575,8 @@ pub fn write_qtydeterminfo(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("QtyDetermInfo");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::MethodDescription => value.method_description.is_some(),
             Name::OrdDescr => value.ord_descr.is_some(),
             Name::ProjDescr => value.proj_descr.is_some(),
@@ -20470,9 +21586,18 @@ pub fn write_qtydeterminfo(
             Name::Profiler => value.profiler.is_some(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("QtyDetermInfo", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("QtyDetermInfo", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -20618,8 +21743,8 @@ pub fn write_qtydetermination(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("QtyDetermination");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::PrjInfo => value.prj_info.is_some(),
             Name::QtyDetermInfo => value.qty_determ_info.is_some(),
             Name::DP => value.dp.is_some(),
@@ -20627,9 +21752,18 @@ pub fn write_qtydetermination(
             Name::CTR => value.ctr.is_some(),
             Name::BoQ => value.boq.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("QtyDetermination", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("QtyDetermination", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -20732,15 +21866,24 @@ fn field_qtysplit(
 
 pub fn write_qtysplit(w: &mut Writer<'_>, value: &QtySplit, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("QtySplit");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::QtyPcnt => value.qty_pcnt.is_some(),
             Name::Qty => value.qty.is_some(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("QtySplit", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("QtySplit", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -20926,8 +22069,8 @@ fn field_quotation(
 
 pub fn write_quotation(w: &mut Writer<'_>, value: &Quotation, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("Quotation");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Kind => value.kind.is_some(),
             Name::PriceFrom => value.price_from.is_some(),
             Name::PriceTo => value.price_to.is_some(),
@@ -20939,9 +22082,18 @@ pub fn write_quotation(w: &mut Writer<'_>, value: &Quotation, tag: &str) -> Resu
             Name::WeightPart => !value.weight_part.is_empty(),
             Name::WeigthPart => !value.weigth_part.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Quotation", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Quotation", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -21153,8 +22305,8 @@ fn field_refgroup(
 
 pub fn write_refgroup(w: &mut Writer<'_>, value: &RefGroup, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("RefGroup");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Title => value.title.is_some(),
             Name::BoQItemRef => !value.boq_item_ref.is_empty(),
             Name::BoQCtgyRef => !value.boq_ctgy_ref.is_empty(),
@@ -21164,9 +22316,18 @@ pub fn write_refgroup(w: &mut Writer<'_>, value: &RefGroup, tag: &str) -> Result
             Name::ConsortiumMemberRef => !value.consortium_member_ref.is_empty(),
             Name::ProjectBoQItemRef => !value.project_boq_item_ref.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("RefGroup", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("RefGroup", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -21345,8 +22506,8 @@ fn field_refitems(
 
 pub fn write_refitems(w: &mut Writer<'_>, value: &RefItems, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("RefItems");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Customer => !value.customer.is_empty(),
             Name::CustomerSubNo => !value.customer_sub_no.is_empty(),
             Name::CustomerCtlgAssign => !value.customer_ctlg_assign.is_empty(),
@@ -21354,9 +22515,18 @@ pub fn write_refitems(w: &mut Writer<'_>, value: &RefItems, tag: &str) -> Result
             Name::SupplierSubNo => !value.supplier_sub_no.is_empty(),
             Name::SupplierCtlgAssign => !value.supplier_ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("RefItems", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("RefItems", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -21531,16 +22701,25 @@ fn field_remark(
 
 pub fn write_remark(w: &mut Writer<'_>, value: &Remark, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("Remark");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Description => value.description.is_some(),
             Name::CONo => value.co_no.is_some(),
             Name::AlterBidStatus => value.alter_bid_status.is_some(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Remark", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Remark", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -21650,16 +22829,25 @@ fn field_requester(
 
 pub fn write_requester(w: &mut Writer<'_>, value: &Requester, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("Requester");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Address => value.address.is_some(),
             Name::RequestIDNo => value.request_id_no.is_some(),
             Name::RequestName => value.request_name.is_some(),
             Name::AddText => !value.add_text.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Requester", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Requester", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -21759,16 +22947,25 @@ pub fn write_scevaluation(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("SCEvaluation");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::DP => value.dp.is_some(),
             Name::Award => value.award.is_some(),
             Name::AddText => !value.add_text.is_empty(),
             Name::BidderList => value.bidder_list.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("SCEvaluation", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("SCEvaluation", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -21869,16 +23066,25 @@ fn field_scgaeb(
 
 pub fn write_scgaeb(w: &mut Writer<'_>, value: &SCGAEB, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("SCGAEB");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::GAEBInfo => value.gaeb_info.is_some(),
             Name::PrjInfo => value.prj_info.is_some(),
             Name::SCEvaluation => value.sc_evaluation.is_some(),
             Name::AddText => !value.add_text.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("SCGAEB", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("SCGAEB", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -21951,14 +23157,23 @@ fn field_stlbbau(
 
 pub fn write_stlbbau(w: &mut Writer<'_>, value: &STLBBau, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("STLBBau");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::STLBBauCtlg => value.stlb_bau_ctlg.is_some(),
             Name::STLBBauID => !value.stlb_bau_id.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("STLBBau", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("STLBBau", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -22077,17 +23292,26 @@ pub fn write_stlbbauctlg(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("STLBBauCtlg");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::CtlgName => value.ctlg_name.is_some(),
             Name::VersDate => value.vers_date.is_some(),
             Name::WCtg => value.w_ctg.is_some(),
             Name::Group => value.group.is_some(),
             Name::CostGrp => value.cost_grp.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("STLBBauCtlg", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("STLBBauCtlg", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -22197,16 +23421,25 @@ fn field_stlbbauid(
 
 pub fn write_stlbbauid(w: &mut Writer<'_>, value: &STLBBauID, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("STLBBauID");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::ArtChrIdent => value.art_chr_ident.is_some(),
             Name::ArtChIdx => value.art_ch_idx.is_some(),
             Name::ChVIdent => value.ch_v_ident.is_some(),
             Name::OutlTextPart => value.outl_text_part.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("STLBBauID", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("STLBBauID", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -22286,14 +23519,23 @@ pub fn write_spatialhierarchy(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("SpatialHierarchy");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::SpatialHierarchyInfo => value.spatial_hierarchy_info.is_some(),
             Name::Body => value.body.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("SpatialHierarchy", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("SpatialHierarchy", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -22351,13 +23593,22 @@ pub fn write_spatialhierarchybody(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("SpatialHierarchyBody");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::TopologyElement => !value.topology_element.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("SpatialHierarchyBody", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("SpatialHierarchyBody", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -22428,18 +23679,27 @@ pub fn write_spatialhierarchyspatialhierarchyinfo(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("SpatialHierarchySpatialHierarchyInfo");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Topology => !value.topology.is_empty(),
             Name::CatalogDescription => !value.catalog_description.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing(
                 "SpatialHierarchySpatialHierarchyInfo",
                 *required,
                 value.node,
             )?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("SpatialHierarchySpatialHierarchyInfo", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -22504,15 +23764,28 @@ pub fn write_spatialhierarchyspatialhierarchyinfocatalogdescription(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("SpatialHierarchySpatialHierarchyInfoCatalogDescription");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Description => value.description.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing(
                 "SpatialHierarchySpatialHierarchyInfoCatalogDescription",
                 *required,
+                value.node,
+            )?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing(
+                "SpatialHierarchySpatialHierarchyInfoCatalogDescription",
+                *first,
                 value.node,
             )?;
         }
@@ -22848,8 +24121,8 @@ fn field_subdescr(
 
 pub fn write_subdescr(w: &mut Writer<'_>, value: &SubDescr, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("SubDescr");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::SubDNo => value.sub_d_no.is_some(),
             Name::Description => value.description.is_some(),
             Name::QtySpec => value.qty_spec.is_some(),
@@ -22867,9 +24140,18 @@ pub fn write_subdescr(w: &mut Writer<'_>, value: &SubDescr, tag: &str) -> Result
             Name::UPComp6 => value.up_comp6.is_some(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("SubDescr", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("SubDescr", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -23006,16 +24288,25 @@ pub fn write_supplierinfo(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("SupplierInfo");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::IDNo => value.id_no.is_some(),
             Name::Address => value.address.is_some(),
             Name::TaxNo => value.tax_no.is_some(),
             Name::RegNo => value.reg_no.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("SupplierInfo", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("SupplierInfo", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -23153,8 +24444,8 @@ pub fn write_textcomplement(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("TextComplement");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::ComplCaption => value.compl_caption.is_some(),
             Name::ComplBodyDec => value.compl_body_dec.is_some(),
             Name::ComplBodyInt => value.compl_body_int.is_some(),
@@ -23162,9 +24453,18 @@ pub fn write_textcomplement(
             Name::ComplTail => value.compl_tail.is_some(),
             Name::CtlgAssign => !value.ctlg_assign.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("TextComplement", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("TextComplement", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -23290,16 +24590,25 @@ pub fn write_topologyelement(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("TopologyElement");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Description => value.description.is_some(),
             Name::BuildingElement => !value.building_element.is_empty(),
             Name::CatalogReference => !value.catalog_reference.is_empty(),
             Name::TopologyElement => !value.topology_element.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("TopologyElement", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("TopologyElement", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -23384,14 +24693,23 @@ pub fn write_topologyelementbuildingelement(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("TopologyElementBuildingElement");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Description => value.description.is_some(),
             Name::CatalogReference => !value.catalog_reference.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("TopologyElementBuildingElement", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("TopologyElementBuildingElement", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -23536,8 +24854,8 @@ pub fn write_totalnetupcomp(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("TotalNetUpComp");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::UpComp1 => value.up_comp1.is_some(),
             Name::UpComp2 => value.up_comp2.is_some(),
             Name::UpComp3 => value.up_comp3.is_some(),
@@ -23545,9 +24863,18 @@ pub fn write_totalnetupcomp(
             Name::UpComp5 => value.up_comp5.is_some(),
             Name::UpComp6 => value.up_comp6.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("TotalNetUpComp", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("TotalNetUpComp", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -23758,8 +25085,8 @@ fn field_totals(
 
 pub fn write_totals(w: &mut Writer<'_>, value: &Totals, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("Totals");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Total => value.total.is_some(),
             Name::DiscountPcnt => value.discount_pcnt.is_some(),
             Name::DiscountAmt => value.discount_amt.is_some(),
@@ -23772,9 +25099,18 @@ pub fn write_totals(w: &mut Writer<'_>, value: &Totals, tag: &str) -> Result<(),
             Name::VATAmount => value.vat_amount.is_some(),
             Name::TotalGross => value.total_gross.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("Totals", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("Totals", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -23868,14 +25204,23 @@ fn field_uservalue(
 
 pub fn write_uservalue(w: &mut Writer<'_>, value: &UserValue, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("UserValue");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Name => value.name.is_some(),
             Name::Value => value.value.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("UserValue", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("UserValue", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -23942,14 +25287,23 @@ fn field_vatpart(
 
 pub fn write_vatpart(w: &mut Writer<'_>, value: &VATPart, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("VATPart");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::TotalNetPart => value.total_net_part.is_some(),
             Name::VATAmount => value.vat_amount.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("VATPart", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("VATPart", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -24047,16 +25401,25 @@ pub fn write_weightpart(
     tag: &str,
 ) -> Result<(), WriteError> {
     let restriction = w.restriction("WeightPart");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::Weight => value.weight.is_some(),
             Name::UW => value.uw.is_some(),
             Name::Base => value.base.is_some(),
             Name::UnitBase => value.unit_base.is_some(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("WeightPart", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("WeightPart", *first, value.node)?;
         }
     }
     w.open(tag);
@@ -24205,8 +25568,8 @@ fn field_wgchange(
 
 pub fn write_wgchange(w: &mut Writer<'_>, value: &WgChange, tag: &str) -> Result<(), WriteError> {
     let restriction = w.restriction("WgChange");
-    for required in w.required(restriction) {
-        let present = match required {
+    let present = |name: Name| -> bool {
+        match name {
             Name::LblRefWage => value.lbl_ref_wage.is_some(),
             Name::RedPriceComp => value.red_price_comp.is_some(),
             Name::RefBoQ => !value.ref_boq.is_empty(),
@@ -24215,9 +25578,18 @@ pub fn write_wgchange(w: &mut Writer<'_>, value: &WgChange, tag: &str) -> Result
             Name::RefItem => !value.ref_item.is_empty(),
             Name::WgChangeRate => !value.wg_change_rate.is_empty(),
             _ => true,
-        };
-        if !present {
+        }
+    };
+    for required in w.required(restriction) {
+        if !present(*required) {
             w.missing("WgChange", *required, value.node)?;
+        }
+    }
+    for group in w.required_any(restriction) {
+        if !group.iter().any(|n| present(*n))
+            && let Some(first) = group.first()
+        {
+            w.missing("WgChange", *first, value.node)?;
         }
     }
     w.open(tag);
