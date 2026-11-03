@@ -24,7 +24,7 @@ for item in tender.items():
     bid.price(item.id, Decimal("12.50"))
 bid.vat_percent(Decimal("19"))
 doc = bid.finish()
-assert [f for f in doc.validate() if f.severity == "Error"] == []
+assert [f for f in doc.validate(tender=tender) if f.severity == "Error"] == []
 open("bid.X84", "wb").write(doc.write())
 ```
 
