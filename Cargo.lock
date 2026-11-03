@@ -539,7 +539,7 @@ dependencies = [
 
 [[package]]
 name = "gaebboss-cli"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "assert_cmd",
  "clap",
@@ -556,7 +556,7 @@ dependencies = [
 
 [[package]]
 name = "gaebboss-core"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "criterion",
  "gaebboss-testkit",
@@ -567,7 +567,7 @@ dependencies = [
 
 [[package]]
 name = "gaebboss-py"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "gaebboss-core",
  "pyo3",
@@ -576,11 +576,11 @@ dependencies = [
 
 [[package]]
 name = "gaebboss-testkit"
-version = "0.1.2"
+version = "0.2.0"
 
 [[package]]
 name = "gaebboss-tui"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "arboard",
  "base64 0.23.1",
@@ -1754,7 +1754,7 @@ checksum = "ea6fc2961e4ef194dcbfe56bb845534d0dc8098940c7e5c012a258bfec6701bd"
 
 [[package]]
 name = "xtask"
-version = "0.1.2"
+version = "0.2.0"
 dependencies = [
  "gaebboss-core",
  "roxmltree",
