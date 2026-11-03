@@ -66,3 +66,10 @@ def test_validate(x83, x84) -> None:
     findings = tender.validate()
     assert all(f.severity in ("Error", "Warning", "Info") for f in findings)
     assert all(isinstance(f.code, str) and isinstance(f.message, str) for f in findings)
+
+
+def test_validate_with_the_tender_leaves_out_what_the_tender_marks(musterdatei_x83) -> None:
+    tender = gaebboss.Document(musterdatei_x83)
+    bid = gaebboss.Document(musterdatei_x83.with_suffix(".X84"))
+    assert any(f.code == "CategoryTotalMismatch" for f in bid.validate())
+    assert [f for f in bid.validate(tender=tender) if f.severity == "Error"] == []

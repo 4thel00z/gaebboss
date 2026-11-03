@@ -27,7 +27,7 @@ gaebboss json      tender.X83 --compact             # the whole document, decima
 gaebboss q         tender.X83 '.items[] | select(.kind == "LumpSum") | .oz' -r
 gaebboss hex       tender.X83 oz:01.02.0010         # hexdump one element (oz:OZ, id:ID, range:START-END)
 gaebboss tui       tender.X83                       # interactive explorer
-gaebboss validate  bid.X84 --tender tender.X83      # exit 1 on errors
+gaebboss validate  bid.X84 --tender tender.X83      # exit 1 on errors; totals follow the tender's alternatives
 gaebboss roundtrip tender.X83 -o copy.X83 --pretty  # --phase X84 --version 3.3 convert
 gaebboss bid       tender.X83 --prices prices.csv --bidder bidder.toml -o bid.X84
 ```
@@ -82,7 +82,7 @@ for item in tender.items():
 bid.vat_percent(Decimal("19"))
 x84 = bid.finish()                                   # raises on unpriced items
 open("bid.X84", "wb").write(x84.write())
-print(x84.validate_against(tender))
+print(x84.validate(tender=tender))
 ```
 
 ## Rust

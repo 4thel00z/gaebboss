@@ -5,7 +5,7 @@ The authoritative signatures are the stubs shipped with the package,
 
 - `Document(path=None, *, data=None, name=None)`; properties `version`,
   `phase`, `warnings`, `project`, `boq`; methods `items(kind="all")`,
-  `categories()`, `markup_items()`, `to_json()`, `validate()`,
+  `categories()`, `markup_items()`, `to_json()`, `validate(tender=None)`,
   `validate_against(tender)`, `write(*, phase, version, pretty, strict)`,
   `write_report(*, phase, version, strict)`.
 - `Item`: `id`, `oz`, `kind`, `alternative_group`, `alternative_serial`,

@@ -24,6 +24,10 @@ quantity item. `bidder.toml` holds `name1`, `street`, `pcode`, `city` and
 optionally `name2`, `contact`, `email`, `bidder_no`, `vat_percent`,
 `discount_percent`.
 
+Validate a bid with `--tender`: an X84 does not mark alternative items and
+categories or not-applicable items, so only the tender tells the totals what
+to leave out.
+
 ## Querying with jq
 
 `gaebboss q` runs a jq program (the jaq engine) over the same JSON

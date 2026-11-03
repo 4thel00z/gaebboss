@@ -56,7 +56,7 @@ gaebboss json      tender.X83 --compact             # the whole document, decima
 gaebboss q         tender.X83 '.items[] | select(.kind == "LumpSum") | .oz' -r   # jq over the JSON
 gaebboss hex       tender.X83 oz:01.02.0010         # hexdump the document or one element (oz:, id:, range:)
 gaebboss tui       tender.X83                       # interactive explorer: tree, inspector, XML, findings
-gaebboss validate  bid.X84 --tender tender.X83      # exit 1 on errors; structure and ids checked against the tender
+gaebboss validate  bid.X84 --tender tender.X83      # exit 1 on errors; totals summed and structure checked by the tender
 gaebboss roundtrip tender.X83 -o copy.X83 --pretty  # parse and write back; --phase X84 --version 3.3 convert
 gaebboss bid       tender.X83 --prices prices.csv --bidder bidder.toml -o bid.X84
 gaebboss skill     install                          # the bundled Claude Code skill (-g for ~/.claude)
@@ -93,7 +93,7 @@ bid.not_offered(tender.items()[0].id)
 bid.vat_percent(Decimal("19"))
 x84 = bid.finish()                                   # a Document; raises on unpriced items
 open("bid.X84", "wb").write(x84.write())
-print(x84.validate_against(tender))                  # findings: severity, code, oz, message
+print(x84.validate(tender=tender))                   # findings: severity, code, oz, message
 ```
 
 ```rust,no_run
@@ -115,7 +115,7 @@ fn main() -> Result<(), Box<dyn std::error::Error>> {
     }
     let x84 = bid.finish()?;
     std::fs::write("bid.X84", x84.write(&x84.x84_options())?)?;
-    println!("{totals:?} {:?}", validate::validate_against_tender(&x84, &tender));
+    println!("{totals:?} {:?}", validate::validate_with_tender(&x84, &tender));
     Ok(())
 }
 ```
@@ -157,7 +157,7 @@ A 3.0 or 3.1 tender is answered in 3.2, the oldest version with phase schemas; 3
 
 ## Validation
 
-`validate` reports what a receiving AVA system would reject or recompute: elements a phase does not allow or requires, duplicate or dangling ids, Ordnungszahlen that are not unique, not ascending or too long, decimals with more places than the schema gives them, item totals that do not match quantity times price, category and bill totals that do not match their items, unit prices on items not offered, quantities on non-free items in an X84. `validate --tender` adds the X84 against its X83: items missing or added, ids and structure that differ.
+`validate` reports what a receiving AVA system would reject or recompute: elements a phase does not allow or requires, duplicate or dangling ids, Ordnungszahlen that are not unique, not ascending or too long, decimals with more places than the schema gives them, item totals that do not match quantity times price, category and bill totals that do not match their items, unit prices on items not offered, quantities on non-free items in an X84. `validate --tender` checks an X84 with its X83: the totals leave out what the tender marks as alternative or not applicable (an X84 cannot carry those marks, so a bid with alternative categories only adds up with its tender), and items missing or added, ids and structure that differ are reported.
 
 ## Benchmarks
 

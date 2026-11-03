@@ -4,7 +4,7 @@
 use std::collections::{HashMap, HashSet};
 
 use crate::Document;
-use crate::boq::{ItemKind, ItemRef};
+use crate::boq::{BoqTotals, ItemKind, ItemRef, LeftOut, category_counts_towards_total};
 use crate::decimal::{Decimal, item_total};
 use crate::name::Name;
 use crate::tape::NodeId;
@@ -70,8 +70,91 @@ pub fn validate(doc: &Document) -> Vec<Finding> {
     phase_rules(doc, &mut out);
     identifiers(doc, &mut out);
     items(doc, &mut out);
-    totals(doc, &mut out);
+    totals(&doc.computed_totals(), &mut out);
     out
+}
+
+/// A bid (X84) checked like `validate` does, its totals summed the way the
+/// tender (X83) says (an X84 does not mark alternative or not-applicable
+/// items and categories, the tender does), and then against the tender as
+/// `validate_against_tender` does.
+pub fn validate_with_tender(bid: &Document, tender: &Document) -> Vec<Finding> {
+    let mut out = Vec::new();
+    phase_rules(bid, &mut out);
+    identifiers(bid, &mut out);
+    items(bid, &mut out);
+    totals(
+        &bid.computed_totals_except(&left_out(bid, tender)),
+        &mut out,
+    );
+    out.extend(validate_against_tender(bid, tender));
+    out
+}
+
+/// The tender's items, looked up the way a bid answers them: by ID, else
+/// by Ordnungszahl.
+struct TenderItems<'t> {
+    items: Vec<ItemRef<'t>>,
+    by_id: HashMap<String, usize>,
+    by_oz: HashMap<String, usize>,
+}
+
+impl<'t> TenderItems<'t> {
+    fn new(tender: &'t Document) -> TenderItems<'t> {
+        let items: Vec<ItemRef<'t>> = tender.items().collect();
+        let by_id = items
+            .iter()
+            .enumerate()
+            .filter(|(_, i)| !i.id().is_empty())
+            .map(|(index, i)| (i.id().to_string(), index))
+            .collect();
+        let by_oz = items
+            .iter()
+            .enumerate()
+            .map(|(index, i)| (i.oz.compact(), index))
+            .collect();
+        TenderItems {
+            items,
+            by_id,
+            by_oz,
+        }
+    }
+
+    fn answered_by(&self, item: &ItemRef<'_>) -> Option<&ItemRef<'t>> {
+        let index = self
+            .by_id
+            .get(item.id())
+            .or_else(|| self.by_oz.get(&item.oz.compact()))?;
+        self.items.get(*index)
+    }
+}
+
+/// The bid's items and categories the tender keeps out of the sums: items
+/// whose tender item does not count and categories the tender makes
+/// alternatives.
+fn left_out(bid: &Document, tender: &Document) -> LeftOut {
+    let tender_items = TenderItems::new(tender);
+    let alternatives: HashSet<String> = tender
+        .categories()
+        .filter(|c| !category_counts_towards_total(c.ctgy))
+        .map(|c| c.oz.dotted())
+        .collect();
+    LeftOut {
+        items: bid
+            .items()
+            .filter(|i| {
+                tender_items
+                    .answered_by(i)
+                    .is_some_and(|t| !t.counts_towards_total())
+            })
+            .map(|i| i.item.node)
+            .collect(),
+        categories: bid
+            .categories()
+            .filter(|c| alternatives.contains(&c.oz.dotted()))
+            .map(|c| c.ctgy.node)
+            .collect(),
+    }
 }
 
 fn phase_rules(doc: &Document, out: &mut Vec<Finding>) {
@@ -304,8 +387,7 @@ fn digits(
     ));
 }
 
-fn totals(doc: &Document, out: &mut Vec<Finding>) {
-    let totals = doc.computed_totals();
+fn totals(totals: &BoqTotals, out: &mut Vec<Finding>) {
     for c in &totals.categories {
         let (Some(declared), Some(computed)) = (c.declared, c.computed) else {
             continue;
@@ -354,23 +436,12 @@ pub fn validate_against_tender(bid: &Document, tender: &Document) -> Vec<Finding
             ),
         ));
     }
-    let tender_items: Vec<ItemRef<'_>> = tender.items().collect();
-    let by_id: HashMap<&str, &ItemRef<'_>> = tender_items
-        .iter()
-        .filter(|i| !i.id().is_empty())
-        .map(|i| (i.id(), i))
-        .collect();
-    let by_oz: HashMap<String, &ItemRef<'_>> =
-        tender_items.iter().map(|i| (i.oz.compact(), i)).collect();
+    let tender_items = TenderItems::new(tender);
     let mut matched: HashSet<String> = HashSet::new();
     for item in bid.items() {
         let oz = item.oz.dotted();
         let node = Some(item.item.node);
-        let found = by_id
-            .get(item.id())
-            .copied()
-            .or_else(|| by_oz.get(&item.oz.compact()).copied());
-        let Some(tender_item) = found else {
+        let Some(tender_item) = tender_items.answered_by(&item) else {
             out.push(finding(
                 Severity::Error,
                 FindingCode::StructureDiffersFromTender,
@@ -428,7 +499,7 @@ pub fn validate_against_tender(bid: &Document, tender: &Document) -> Vec<Finding
             ));
         }
     }
-    for tender_item in &tender_items {
+    for tender_item in &tender_items.items {
         if matched.contains(&tender_item.oz.compact()) {
             continue;
         }

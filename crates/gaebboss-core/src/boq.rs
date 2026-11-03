@@ -2,10 +2,13 @@
 //! document order with their Ordnungszahl, kind, quantities, prices, texts
 //! and totals.
 
+use std::collections::HashSet;
+
 use crate::Document;
 use crate::decimal::{Decimal, item_total, total_after_discount};
 use crate::model::{BoQ, BoQBody, BoQCtgy, Item, MarkupItem, Provis, Totals};
 use crate::oz::{Breakdown, Oz};
+use crate::tape::NodeId;
 use crate::text::{Complement, complements, markdown, plain};
 
 #[derive(Clone, Copy, Debug, PartialEq, Eq, Hash)]
@@ -163,7 +166,7 @@ pub fn counts_towards_total(item: &Item) -> bool {
 
 /// Whether a category's total belongs in its parent's sum: an alternative
 /// category (`ALNBSerNo` other than 0) stays out like an alternative item.
-fn category_counts_towards_total(ctgy: &BoQCtgy) -> bool {
+pub(crate) fn category_counts_towards_total(ctgy: &BoQCtgy) -> bool {
     !(ctgy.alnb_group_no.is_some() && ctgy.alnb_ser_no.is_some_and(|serial| serial != 0))
 }
 
@@ -346,6 +349,11 @@ impl Document {
 
     /// Category and BoQ sums from the item totals, rounded per level.
     pub fn computed_totals(&self) -> BoqTotals {
+        self.computed_totals_except(&LeftOut::default())
+    }
+
+    /// The sums with the given items and categories left out as well.
+    pub(crate) fn computed_totals_except(&self, left_out: &LeftOut) -> BoqTotals {
         let mut totals = BoqTotals {
             declared: self.declared_total(),
             ..BoqTotals::default()
@@ -358,6 +366,7 @@ impl Document {
             self,
             &breakdown,
             body,
+            left_out,
             &mut Vec::new(),
             &mut Vec::new(),
             &mut totals.categories,
@@ -366,10 +375,20 @@ impl Document {
     }
 }
 
+/// Items and categories the sums leave out beyond what their own markers
+/// say: an X84 carries no alternative or not-applicable markers, the
+/// tender it answers does.
+#[derive(Clone, Debug, Default)]
+pub(crate) struct LeftOut {
+    pub items: HashSet<NodeId>,
+    pub categories: HashSet<NodeId>,
+}
+
 fn sum_body<'a>(
     doc: &'a Document,
     breakdown: &Breakdown,
     body: &'a BoQBody,
+    left_out: &LeftOut,
     path: &mut Vec<&'a BoQCtgy>,
     parts: &mut Vec<String>,
     out: &mut Vec<CategoryTotal>,
@@ -386,7 +405,7 @@ fn sum_body<'a>(
         let computed = ctgy
             .boq_body
             .as_ref()
-            .and_then(|b| sum_body(doc, breakdown, b, path, parts, out));
+            .and_then(|b| sum_body(doc, breakdown, b, left_out, path, parts, out));
         let oz = breakdown.category_oz(&parts.iter().map(String::as_str).collect::<Vec<_>>());
         out.push(CategoryTotal {
             oz: oz.dotted(),
@@ -396,7 +415,7 @@ fn sum_body<'a>(
         });
         path.pop();
         parts.pop();
-        if !category_counts_towards_total(ctgy) {
+        if !category_counts_towards_total(ctgy) || left_out.categories.contains(&ctgy.node) {
             continue;
         }
         let totals = ctgy.totals.as_ref();
@@ -414,7 +433,7 @@ fn sum_body<'a>(
                 oz: Oz::default_for(),
                 path: path.clone(),
             };
-            if !r.counts_towards_total() {
+            if !r.counts_towards_total() || left_out.items.contains(&item.node) {
                 continue;
             }
             let Some(total) = r.total() else { continue };
