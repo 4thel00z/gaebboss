@@ -52,14 +52,14 @@ impl YankTarget {
 
     pub fn name(self) -> &'static str {
         match self {
-            YankTarget::Oz => "oz",
-            YankTarget::Id => "id",
+            YankTarget::Oz => "OZ",
+            YankTarget::Id => "ID",
             YankTarget::ShortText => "short text",
             YankTarget::LongText => "long text",
-            YankTarget::Markdown => "markdown",
-            YankTarget::Xml => "xml",
-            YankTarget::Query => "q query",
-            YankTarget::Command => "command",
+            YankTarget::Markdown => "Markdown",
+            YankTarget::Xml => "XML",
+            YankTarget::Query => "jq query",
+            YankTarget::Command => "shell command",
         }
     }
 }
@@ -76,7 +76,7 @@ pub fn shell_quote(text: &str) -> String {
 /// The jq program selecting this row in `gaebboss q`.
 fn query(outline: &Outline, index: usize) -> Option<String> {
     let row = outline.row(index)?;
-    let program = match row.kind {
+    let program = match row.kind() {
         RowKind::Bill => ".boq".to_string(),
         RowKind::Category => format!(".categories[] | select(.oz == \"{}\")", row.oz),
         RowKind::Item => format!(".items[] | select(.oz == \"{}\")", row.oz),
@@ -89,7 +89,7 @@ fn query(outline: &Outline, index: usize) -> Option<String> {
 fn command(outline: &Outline, index: usize, target: &str) -> Option<String> {
     let row = outline.row(index)?;
     let file = shell_quote(target);
-    let line = match row.kind {
+    let line = match row.kind() {
         RowKind::Item => format!("gaebboss md {file} --oz {}", shell_quote(&row.oz)),
         RowKind::Bill => format!("gaebboss info {file}"),
         RowKind::Category | RowKind::Markup => format!(

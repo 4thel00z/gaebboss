@@ -12,6 +12,7 @@ pub mod app;
 pub mod clipboard;
 pub mod input;
 pub mod outline;
+pub mod theme;
 pub mod ui;
 pub mod yank;
 
@@ -72,6 +73,7 @@ pub async fn run(doc: Document, title: String, target: String) -> io::Result<()>
     let size = terminal.size()?;
     let doc = Arc::new(doc);
     let mut app = App::new(Arc::clone(&doc), title, target, (size.width, size.height));
+    app.theme = theme::Theme::detect();
     let (tx, mut rx) = mpsc::unbounded_channel::<Msg>();
     spawn_outline(doc, tx.clone());
     let mut events = EventStream::new();

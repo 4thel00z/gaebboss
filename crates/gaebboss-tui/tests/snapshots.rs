@@ -85,30 +85,30 @@ fn opening_shows_the_bill() {
     assert_frame(
         &app,
         &[
-            "┌Tree──────────────────────────┐┌Inspector · Bill──────────────────────────────┐",
-            "│▾ BVBS GAEB Bauausf. · GAEB 3.││Version        3.3                            │",
-            "│  ▸ 001 Bauhauptgewerke       ││Phase          X83                            │",
-            "│  ▸ 002 Baunebengewerke       ││Project        BVBS GAEB Muster               │",
-            "│  ▸ 999 Stundenlohnarbeiten   ││Project label  BVBS GAEB Musterdatei 3.3      │",
-            "│                              ││Currency       EUR                            │",
-            "│                              ││BoQ            BVBS GAEB Bauausf.             │",
-            "│                              ││BoQ label      BVBS GAEB Musterdatei          │",
-            "│                              ││Bauausführung                                 │",
-            "│                              ││Breakdown      BoQLevel(3) BoQLevel(3) Item(4)│",
-            "│                              ││Index(1)                                      │",
-            "│                              ││Categories     12                             │",
-            "│                              ││Items          27                             │",
-            "│                              │└──────────────────────────────────────────────┘",
-            "│                              │┌XML 0x6b..0x18737─────────────────────────────┐",
-            "│                              ││<GAEB                                         │",
-            "│                              ││xmlns=\"http://www.gaeb.de/GAEB_DA_XML/DA83/3.3│",
-            "│                              ││\">                                            │",
-            "│                              ││ <GAEBInfo>                                   │",
-            "│                              ││  <Version>3.3</Version>                      │",
-            "│                              ││  <VersDate>2021-05</VersDate>                │",
-            "│                              ││  <Date>2024-04-04</Date>                     │",
-            "└──────────────────────────────┘└──────────────────────────────────────────────┘",
-            "bvbs · Bill · [/] search  []] finding  [m] markdown  [y] yank  [q] quit",
+            " gaebboss   bvbs   GAEB 3.3 X83   27 items in 12 categories       ✓ no findings",
+            "╭ Outline ───────────────────────╮╭ Bill ──────────────────────────────────────╮",
+            "│▌ ▾ BVBS GAEB Bauausf.          ││ BVBS GAEB Muster                           │",
+            "│    ▸ 001 Bauhauptgewerke       ││ BVBS GAEB Musterdatei 3.3                  │",
+            "│    ▸ 002 Baunebengewerke       ││ BVBS GAEB Musterdatei Bauausführung        │",
+            "│    ▸ 999 Stundenlohnarbeiten   ││                                            │",
+            "│                                ││ Bill       BVBS GAEB Bauausf.              │",
+            "│                                ││ Format     GAEB DA XML 3.3 X83             │",
+            "│                                ││ Contents   12 categories, 27 items         │",
+            "│                                ││ Markups    1                               │",
+            "│                                ││ OZ shape   000.000.0000 + index            │",
+            "│                                ││ Currency   EUR                             │",
+            "│                                ││ Total      not priced                      │",
+            "│                                ││                                            │",
+            "│                                │╰────────────────────────────────────────────╯",
+            "│                                │╭ XML ──────────────────────── 0x6b..0x18737 ╮",
+            "│                                ││ <GAEB xmlns=\"http://www.gaeb.de/GAEB_DA_XM ┃",
+            "│                                ││  <GAEBInfo>                                │",
+            "│                                ││   <Version>3.3</Version>                   │",
+            "│                                ││   <VersDate>2021-05</VersDate>             │",
+            "│                                ││   <Date>2024-04-04</Date>                  │",
+            "│                                ││   <Time>10:06:45</Time>                    │",
+            "╰────────────────────────────────╯╰────────────────────────────────────────────╯",
+            " browse   / search   ] next finding   y copy   ? keys   q quit",
         ],
     );
 }
@@ -125,30 +125,30 @@ fn walking_down_to_an_item_shows_its_fields_and_xml() {
     assert_frame(
         &app,
         &[
-            "┌Tree──────────────────────────┐┌Inspector · Item 001.001.0010─────────────────┐",
-            "│▾ BVBS GAEB Bauausf. · GAEB 3.││OZ        001.001.0010                        │",
-            "│  ▾ 001 Bauhauptgewerke       ││ID        ID14EF2450                          │",
-            "│    ▾ 001.001 Baustelleneinric││Kind      Standard                            │",
-            "│        001.001.0010 Baustelle││Counts    yes                                 │",
-            "│        001.001.00101 Betreibe││Quantity  1.000 psch                          │",
-            "│        001.001.0010A Betreibe││                                              │",
-            "│    ▸ 001.002 Erdarbeiten     ││Baustelleneinrichtung einrichten, vorhalten,  │",
-            "│    ▸ 001.003 Maurerarbeiten  ││räumen                                        │",
-            "│    ▸ 001.004 Betonarbeiten   ││                                              │",
-            "│  ▸ 002 Baunebengewerke       ││Baustelleneinrichtung für sämtliche, in der   │",
-            "│  ▸ 999 Stundenlohnarbeiten   ││Leistungsbeschreibung aufgeführten Leistungen │",
-            "│                              ││einrichten, vorhalten und räumen,             │",
-            "│                              │└──────────────────────────────────────────────┘",
-            "│                              │┌XML 0xde4..0x128b─────────────────────────────┐",
-            "│                              ││<Item ID=\"ID14EF2450\" RNoPart=\"0010\">         │",
-            "│                              ││          <Qty>1.000</Qty>                    │",
-            "│                              ││          <QU>psch</QU>                       │",
-            "│                              ││          <Description>                       │",
-            "│                              ││           <CompleteText>                     │",
-            "│                              ││            <DetailTxt>                       │",
-            "│                              ││             <Text>                           │",
-            "└──────────────────────────────┘└──────────────────────────────────────────────┘",
-            "bvbs · 001.001.0010 · [/] search  []] finding  [m] markdown  [y] yank  [q] quit",
+            " gaebboss   bvbs   GAEB 3.3 X83   27 items in 12 categories       ✓ no findings",
+            "╭ Outline ───────────────────────╮╭ Item 001.001.0010 ─────────────────────────╮",
+            "│  ▾ BVBS GAEB Bauausf.          ││ Baustelleneinrichtung einrichten,          │",
+            "│    ▾ 001 Bauhauptgewerke       ││ vorhalten, räumen                          │",
+            "│    │ ▾ 001 Baustelleneinricht… ││  Standard   counts towards the total       │",
+            "│▌   │ │   0010 Baustelleneinri… ││                                            │",
+            "│    │ │   00101 Betreiben der … ││ 1.000 psch   not priced                    │",
+            "│    │ │   0010A Betreiben der … ││ ID ID14EF2450                              │",
+            "│    │ ▸ 002 Erdarbeiten         ││                                            │",
+            "│    │ ▸ 003 Maurerarbeiten      ││ Long text ──────────────────────────────── │",
+            "│    │ ▸ 004 Betonarbeiten       ││ Baustelleneinrichtung für sämtliche, in    │",
+            "│    ▸ 002 Baunebengewerke       ││ der Leistungsbeschreibung aufgeführten     │",
+            "│    ▸ 999 Stundenlohnarbeiten   ││ Leistungen einrichten, vorhalten und       │",
+            "│                                ││ räumen, Vorhaltedauer 12 Wochen, Gerüste   │",
+            "│                                │╰────────────────────────────────────────────╯",
+            "│                                │╭ XML ──────────────────────── 0xde4..0x128b ╮",
+            "│                                ││ <Item ID=\"ID14EF2450\" RNoPart=\"0010\">      ┃",
+            "│                                ││  <Qty>1.000</Qty>                          │",
+            "│                                ││  <QU>psch</QU>                             │",
+            "│                                ││  <Description>                             │",
+            "│                                ││   <CompleteText>                           │",
+            "│                                ││    <DetailTxt>                             │",
+            "╰────────────────────────────────╯╰────────────────────────────────────────────╯",
+            " browse   / search   ] next finding   y copy   ? keys   q quit",
         ],
     );
 }
@@ -177,13 +177,19 @@ fn search_reveals_hits_and_cycles_through_them() {
     let mut app = app("3.3/bvbs_bauausfuehrung.x83");
     press(&mut app, KeyCode::Char('/'));
     type_text(&mut app, "wasserhaltung");
-    assert_eq!(ui::status_text(&app), "/wasserhaltung█");
+    let prompt = ui::status_text(&app);
+    assert!(prompt.starts_with(" search   /wasserhaltung█"), "{prompt}");
+    assert!(
+        prompt.contains(&format!("{} matches", app.search.hits.len())),
+        "{prompt}"
+    );
     press(&mut app, KeyCode::Enter);
     assert!(!app.search.hits.is_empty());
     let first = app.selected;
     assert!(app.outline.haystacks[first].contains("wasserhaltung"));
     assert!(app.visible_rows().contains(&first));
-    assert!(ui::status_text(&app).contains(&format!("[1/{}]", app.search.hits.len())));
+    assert!(ui::status_text(&app).contains(&format!("match 1 of {}", app.search.hits.len())));
+    assert!(frame(&app).iter().any(|l| l.contains("Wasserhaltung")));
     press(&mut app, KeyCode::Char('n'));
     press(&mut app, KeyCode::Char('N'));
     assert_eq!(app.selected, first);
@@ -191,7 +197,7 @@ fn search_reveals_hits_and_cycles_through_them() {
     type_text(&mut app, "kein treffer xyz");
     press(&mut app, KeyCode::Enter);
     assert_eq!(app.selected, first);
-    assert!(ui::status_text(&app).starts_with("no match"));
+    assert!(ui::status_text(&app).contains("Nothing matches \"kein treffer xyz\""));
 }
 
 #[test]
@@ -205,15 +211,40 @@ fn findings_jump_to_the_flagged_row() {
     let flagged = app.outline.row(app.selected).unwrap();
     assert!(!flagged.findings.is_empty());
     assert!(frame(&app).iter().any(|l| l.contains('✗')));
-    let lines = ui::inspector_lines(&app);
-    assert!(lines.iter().any(|l| l.to_string().starts_with("Findings")));
+    let lines: Vec<String> = ui::inspector_lines(&app, 60)
+        .iter()
+        .map(|l| l.to_string())
+        .collect();
+    assert!(
+        lines.iter().any(|l| l.starts_with("Findings ─")),
+        "{lines:?}"
+    );
+    assert!(
+        lines.iter().any(|l| l.contains("✗ adds up to")),
+        "{lines:?}"
+    );
+    assert!(frame(&app)[0].contains("✗ 3"), "{:?}", frame(&app)[0]);
 }
 
 #[test]
 fn yank_copies_through_a_command_and_reports_back() {
     let mut app = app("3.3/bvbs_bauausfuehrung.x84");
     press(&mut app, KeyCode::Char('y'));
-    assert!(ui::status_text(&app).starts_with("yank: [o] oz"));
+    assert!(ui::status_text(&app).starts_with(" copy "));
+    let popup = frame(&app);
+    assert!(popup.iter().any(|l| l.contains("╭ Copy ")), "{popup:?}");
+    assert!(
+        popup
+            .iter()
+            .any(|l| l.contains("jq query") && l.contains(".boq")),
+        "{popup:?}"
+    );
+    assert!(
+        popup
+            .iter()
+            .any(|l| l.contains("long text") && l.contains("none here")),
+        "{popup:?}"
+    );
     let cmds = press(&mut app, KeyCode::Char('q'));
     assert_eq!(
         cmds,
@@ -227,7 +258,7 @@ fn yank_copies_through_a_command_and_reports_back() {
         target: YankTarget::Query,
         result: Err("no clipboard".to_string()),
     });
-    assert_eq!(ui::status_text(&app), "copy failed: no clipboard");
+    assert!(ui::status_text(&app).ends_with("Could not copy jq query: no clipboard"));
     for _ in 0..gaebboss_tui::app::TOAST_TICKS {
         app.update(Msg::Tick);
     }
@@ -235,7 +266,7 @@ fn yank_copies_through_a_command_and_reports_back() {
     press(&mut app, KeyCode::Char('y'));
     let nothing = press(&mut app, KeyCode::Char('t'));
     assert!(nothing.is_empty());
-    assert!(ui::status_text(&app).starts_with("nothing to yank"));
+    assert!(ui::status_text(&app).ends_with("This row has no long text"));
 }
 
 #[test]
@@ -257,9 +288,21 @@ fn tab_moves_focus_and_scrolls_the_focused_pane() {
 #[test]
 fn markdown_mode_and_resizing() {
     let mut app = app("3.3/bvbs_bauausfuehrung.x83");
+    press(&mut app, KeyCode::Char('/'));
+    type_text(&mut app, "wasserhaltung");
+    press(&mut app, KeyCode::Enter);
     press(&mut app, KeyCode::Char('m'));
     assert!(app.markdown);
-    assert!(frame(&app)[0].contains("Inspector · Bill · Markdown"));
+    let lines: Vec<String> = ui::inspector_lines(&app, 60)
+        .iter()
+        .map(|l| l.to_string())
+        .collect();
+    assert!(
+        lines
+            .iter()
+            .any(|l| l.starts_with("Long text as Markdown ─")),
+        "{lines:?}"
+    );
     let before = app.splits;
     app.update(Msg::Key(KeyEvent::new(KeyCode::Right, KeyModifiers::ALT)));
     assert_eq!(app.splits.tree, before.tree + 5);
@@ -286,14 +329,14 @@ fn keys_wait_for_the_outline_but_quit_does_not() {
     assert!(app.loading);
     assert_eq!(app.outline.rows.len(), 1);
     let lines = frame(&app);
-    assert!(lines[1].contains("BVBS GAEB Bauausf."), "{lines:?}");
-    assert!(lines[2].contains("validating, reading texts"), "{lines:?}");
+    assert!(lines[0].contains("checking the bill"), "{lines:?}");
+    assert!(lines[2].contains("BVBS GAEB Bauausf."), "{lines:?}");
     press(&mut app, KeyCode::Char('j'));
     press(&mut app, KeyCode::Char('/'));
     assert!(!app.search.editing);
     app.update(Msg::Loaded(Outline::build(&doc)));
     assert!(!app.loading);
-    assert!(!frame(&app).iter().any(|l| l.contains("validating")));
+    assert!(!frame(&app).iter().any(|l| l.contains("checking the bill")));
     press(&mut app, KeyCode::Char('j'));
     assert_eq!(selected_oz(&app), "001");
     let (mut waiting, _) = pending(
@@ -320,4 +363,20 @@ fn without_a_native_clipboard_the_loop_falls_back_to_osc52() {
             text: "001".to_string()
         }]
     );
+}
+
+#[test]
+fn question_mark_opens_the_keys_and_any_key_closes_them() {
+    let mut app = app("3.3/bvbs_bauausfuehrung.x84");
+    press(&mut app, KeyCode::Char('?'));
+    assert!(app.help);
+    let lines = frame(&app);
+    assert!(lines.iter().any(|l| l.contains("╭ Keys ")), "{lines:?}");
+    assert!(
+        lines.iter().any(|l| l.contains("any key closes")),
+        "{lines:?}"
+    );
+    press(&mut app, KeyCode::Char('q'));
+    assert!(!app.help);
+    assert!(!app.should_quit);
 }

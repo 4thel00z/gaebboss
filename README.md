@@ -71,7 +71,7 @@ gaebboss skill     install                          # the bundled Claude Code sk
 </p>
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/4thel00z/gaebboss/main/assets/tui.png" alt="gaebboss tui on the official BVBS X83: the bill as a tree, the inspector with the long text of item 001.002.0040 found by search, and its XML" width="100%">
+  <img src="https://raw.githubusercontent.com/4thel00z/gaebboss/main/assets/tui.png" alt="gaebboss tui on the official BVBS X83 after searching for betonpflaster: the outline with quantities and the matches marked, item 001.002.0040 with its kind, quantity and long text, and its highlighted XML" width="100%">
 </p>
 
 ```python
