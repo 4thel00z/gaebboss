@@ -49,6 +49,8 @@ and long text, validation findings) and the selected element's XML. The
 terminal opens at once; validation and the long texts are read in the
 background.
 
+![gaebboss tui on the official BVBS X83](https://raw.githubusercontent.com/4thel00z/gaebboss/main/assets/tui.png)
+
 | Key | Action |
 |---|---|
 | `j` `k`, arrows | move, or scroll the focused pane |

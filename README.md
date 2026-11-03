@@ -67,7 +67,11 @@ gaebboss skill     install                          # the bundled Claude Code sk
 `prices.csv` is `OZ;unit price` (`;`, tab or `,`, a `-` price marks an item not offered, an optional third column is the quantity of a free-quantity item). `bidder.toml` carries `name1`, `street`, `pcode`, `city` and optionally `vat_percent` and `discount_percent`.
 
 <p align="center">
-  <img src="https://raw.githubusercontent.com/4thel00z/gaebboss/main/assets/cli.png" alt="The gaebboss CLI reading the official BVBS X83, pricing it into an X84 bid and validating the bid against the tender" width="100%">
+  <img src="https://raw.githubusercontent.com/4thel00z/gaebboss/main/assets/cli.png" alt="The gaebboss CLI reading the official BVBS X83, querying it with jq, pricing it into an X84 bid, validating the bid against the tender and reading its totals" width="100%">
+</p>
+
+<p align="center">
+  <img src="https://raw.githubusercontent.com/4thel00z/gaebboss/main/assets/tui.png" alt="gaebboss tui on the official BVBS X83: the bill as a tree, the inspector with the long text of item 001.002.0040 found by search, and its XML" width="100%">
 </p>
 
 ```python
