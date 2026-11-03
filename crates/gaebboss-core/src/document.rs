@@ -109,6 +109,12 @@ impl Document {
         &self.bytes
     }
 
+    /// Where an element sits in [`Document::bytes`], start tag to end tag.
+    pub fn element_range(&self, node: crate::tape::NodeId) -> Option<std::ops::Range<usize>> {
+        let outer = self.tape.node(node)?.outer();
+        Some(outer.start()..outer.end())
+    }
+
     pub fn version(&self) -> Version {
         self.route.version
     }

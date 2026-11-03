@@ -1,0 +1,24 @@
+[package]
+name = "gaebboss-tui"
+description = "Terminal explorer for GAEB DA XML: bill-of-quantities tree, item inspector, long texts, XML source and validation findings"
+version.workspace = true
+edition.workspace = true
+rust-version.workspace = true
+license.workspace = true
+repository.workspace = true
+homepage.workspace = true
+readme.workspace = true
+keywords = ["gaeb", "tui", "terminal", "explorer", "ratatui"]
+categories = ["command-line-interface", "visualization"]
+
+[dependencies]
+gaebboss-core = { workspace = true }
+ratatui = "0.29"
+crossterm = { version = "0.28", features = ["event-stream"] }
+tokio = { version = "1", features = ["rt", "macros", "sync", "time"] }
+futures-util = "0.3"
+arboard = { version = "3", default-features = false }
+base64 = "0.23"
+
+[lints]
+workspace = true

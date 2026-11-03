@@ -50,12 +50,19 @@ cargo install gaebboss-cli     # the `gaebboss` binary
 ```bash
 gaebboss info      tender.X83                       # version, phase, project, bill, item and category counts
 gaebboss items     tender.X83 --tsv                 # OZ, kind, quantity, unit, short text; --counting drops what the total ignores
-gaebboss text      tender.X83 --oz 01.02.0010 --markdown
+gaebboss text      tender.X83 --oz 01.02.0010       # one long text; every item's without --oz
+gaebboss md        tender.X83                       # the bill as Markdown: category headings, item long texts
 gaebboss json      tender.X83 --compact             # the whole document, decimals as strings
+gaebboss q         tender.X83 '.items[] | select(.kind == "LumpSum") | .oz' -r   # jq over the JSON
+gaebboss hex       tender.X83 oz:01.02.0010         # hexdump the document or one element (oz:, id:, range:)
+gaebboss tui       tender.X83                       # interactive explorer: tree, inspector, XML, findings
 gaebboss validate  bid.X84 --tender tender.X83      # exit 1 on errors; structure and ids checked against the tender
 gaebboss roundtrip tender.X83 -o copy.X83 --pretty  # parse and write back; --phase X84 --version 3.3 convert
 gaebboss bid       tender.X83 --prices prices.csv --bidder bidder.toml -o bid.X84
+gaebboss skill     install                          # the bundled Claude Code skill (-g for ~/.claude)
 ```
+
+`-o` is short for `--out`. Exit codes: 1 when a file cannot be read or written, a jq program fails while running, or `validate` finds errors; 2 for an invalid jq program or a bad argument.
 
 `prices.csv` is `OZ;unit price` (`;`, tab or `,`, a `-` price marks an item not offered, an optional third column is the quantity of a free-quantity item). `bidder.toml` carries `name1`, `street`, `pcode`, `city` and optionally `vat_percent` and `discount_percent`.
 

@@ -247,8 +247,8 @@ impl Document {
                 body,
                 &mut Vec::new(),
                 &mut Vec::new(),
-                &mut |event| {
-                    if let Event::Item(item) = event {
+                &mut |entry| {
+                    if let Entry::Item(item) = entry {
                         out.push(item);
                     }
                 },
@@ -267,8 +267,8 @@ impl Document {
                 body,
                 &mut Vec::new(),
                 &mut Vec::new(),
-                &mut |event| {
-                    if let Event::Category(c) = event {
+                &mut |entry| {
+                    if let Entry::Category(c) = entry {
                         out.push(c);
                     }
                 },
@@ -287,8 +287,8 @@ impl Document {
                 body,
                 &mut Vec::new(),
                 &mut Vec::new(),
-                &mut |event| {
-                    if let Event::Markup(m) = event {
+                &mut |entry| {
+                    if let Entry::Markup(m) = entry {
                         out.push(m);
                     }
                 },
@@ -389,10 +389,69 @@ impl Oz {
     }
 }
 
-enum Event<'a> {
+/// One node of the bill: a category, an item or a markup item.
+pub enum Entry<'a> {
     Category(CategoryRef<'a>),
     Item(ItemRef<'a>),
     Markup(MarkupRef<'a>),
+}
+
+impl Entry<'_> {
+    /// The element on the tape.
+    pub fn node(&self) -> crate::tape::NodeId {
+        match self {
+            Entry::Category(c) => c.ctgy.node,
+            Entry::Item(i) => i.item.node,
+            Entry::Markup(m) => m.item.node,
+        }
+    }
+
+    pub fn oz(&self) -> &Oz {
+        match self {
+            Entry::Category(c) => &c.oz,
+            Entry::Item(i) => &i.oz,
+            Entry::Markup(m) => &m.oz,
+        }
+    }
+
+    /// The `ID` attribute, empty when there is none.
+    pub fn id<'d>(&self, doc: &'d Document) -> &'d str {
+        let span = match self {
+            Entry::Category(c) => c.ctgy.id,
+            Entry::Item(i) => i.item.id,
+            Entry::Markup(m) => m.item.id,
+        };
+        span.map(|s| doc.str(s)).unwrap_or("")
+    }
+
+    /// The categories above this entry.
+    pub fn depth(&self) -> usize {
+        match self {
+            Entry::Category(c) => c.depth,
+            Entry::Item(i) => i.path.len(),
+            Entry::Markup(m) => m.path.len(),
+        }
+    }
+}
+
+impl Document {
+    /// Categories, items and markup items in document order, each category
+    /// before what it contains.
+    pub fn entries(&self) -> impl Iterator<Item = Entry<'_>> {
+        let mut out = Vec::new();
+        let breakdown = self.breakdown();
+        if let Some(body) = self.boq().and_then(|b| b.boq_body.as_ref()) {
+            walk(
+                self,
+                &breakdown,
+                body,
+                &mut Vec::new(),
+                &mut Vec::new(),
+                &mut |entry| out.push(entry),
+            );
+        }
+        out.into_iter()
+    }
 }
 
 fn walk<'a>(
@@ -401,7 +460,7 @@ fn walk<'a>(
     body: &'a BoQBody,
     path: &mut Vec<&'a BoQCtgy>,
     parts: &mut Vec<String>,
-    visit: &mut dyn FnMut(Event<'a>),
+    visit: &mut dyn FnMut(Entry<'a>),
 ) {
     for ctgy in &body.boq_ctgy {
         parts.push(
@@ -416,7 +475,7 @@ fn walk<'a>(
             .as_ref()
             .map(|l| plain(doc, l.node))
             .unwrap_or_default();
-        visit(Event::Category(CategoryRef {
+        visit(Entry::Category(CategoryRef {
             oz,
             label,
             ctgy,
@@ -432,25 +491,35 @@ fn walk<'a>(
     }
     let Some(list) = &body.itemlist else { return };
     let part_refs: Vec<&str> = parts.iter().map(String::as_str).collect();
-    for item in &list.item {
-        let rno = item.rno_part.map(|s| doc.str(s)).unwrap_or("");
-        let index = item.rno_index.map(|s| doc.str(s));
-        let oz = breakdown.oz(&part_refs, rno, index);
-        visit(Event::Item(ItemRef {
-            doc,
-            item,
-            oz,
-            path: path.clone(),
-        }));
-    }
-    for markup in &list.markup_item {
+    let mut items = list.item.iter().peekable();
+    let mut markups = list.markup_item.iter().peekable();
+    loop {
+        let item_first = match (items.peek(), markups.peek()) {
+            (None, None) => return,
+            (Some(item), Some(markup)) => item.node < markup.node,
+            (Some(_), None) => true,
+            (None, Some(_)) => false,
+        };
+        if let Some(item) = items.next_if(|_| item_first) {
+            let rno = item.rno_part.map(|s| doc.str(s)).unwrap_or("");
+            let index = item.rno_index.map(|s| doc.str(s));
+            visit(Entry::Item(ItemRef {
+                doc,
+                item,
+                oz: breakdown.oz(&part_refs, rno, index),
+                path: path.clone(),
+            }));
+            continue;
+        }
+        let Some(markup) = markups.next() else {
+            return;
+        };
         let rno = markup.rno_part.map(|s| doc.str(s)).unwrap_or("");
         let index = markup.rno_index.map(|s| doc.str(s));
-        let oz = breakdown.oz(&part_refs, rno, index);
-        visit(Event::Markup(MarkupRef {
+        visit(Entry::Markup(MarkupRef {
             doc,
             item: markup,
-            oz,
+            oz: breakdown.oz(&part_refs, rno, index),
             path: path.clone(),
         }));
     }
@@ -616,6 +685,32 @@ mod tests {
             "{:?}",
             totals.categories
         );
+    }
+
+    #[test]
+    fn entries_keep_a_markup_item_between_the_items_around_it() {
+        let doc = tender(&format!(
+            "{}<MarkupItem ID=\"m\" RNoPart=\"15\"><Markup>10.00</Markup></MarkupItem>{}",
+            item("a", "10", ""),
+            item("b", "20", "")
+        ));
+        let order: Vec<String> = doc
+            .entries()
+            .map(|e| match e {
+                Entry::Category(c) => format!("c{}", c.oz.dotted()),
+                Entry::Item(i) => format!("i{}", i.id()),
+                Entry::Markup(m) => format!("m{}", m.id()),
+            })
+            .collect();
+        assert_eq!(order, ["c01", "ia", "mm", "ib"]);
+        assert!(
+            doc.entries()
+                .collect::<Vec<_>>()
+                .windows(2)
+                .all(|w| w[0].node() < w[1].node())
+        );
+        assert_eq!(doc.items().count(), 2);
+        assert_eq!(doc.markup_items().count(), 1);
     }
 
     #[test]
