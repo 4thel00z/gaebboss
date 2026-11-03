@@ -50,7 +50,8 @@ Exit codes: 0 on success; 1 when a file cannot be read or written, a jq program 
 | `/` then `n` `N` | search Ordnungszahl, ID, labels and long texts |
 | `]` `[` | next / previous row with validation findings |
 | `m` | long text as Markdown |
-| `y` | yank: `o` OZ, `i` ID, `s` short text, `t` long text, `m` Markdown, `x` XML, `q` jq query, `c` shell command |
+| `y` | copy: `o` OZ, `i` ID, `s` short text, `t` long text, `m` Markdown, `x` XML, `q` jq query, `c` shell command |
+| `?` | the keys |
 | `Alt`+arrows | resize panes |
 | `q` | quit |
 

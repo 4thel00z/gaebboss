@@ -61,9 +61,10 @@ background.
 | `/`, then `n` `N` | search Ordnungszahl, ID, labels and long texts |
 | `]` `[` | next / previous row with validation findings |
 | `m` | long text as Markdown |
-| `y` | yank: `o` OZ, `i` ID, `s` short text, `t` long text, `m` Markdown, `x` XML, `q` jq query, `c` shell command |
+| `y` | copy: a popup previews the OZ, ID, short text, long text, Markdown, XML, a jq query and a shell command; its key copies one |
+| `?` | the keys |
 | `Alt`+arrows | resize the panes (`Ctrl`+arrows where `Alt` is taken) |
 | `q`, `Esc` | quit |
 
-Yanks go to the system clipboard, or through the OSC 52 escape sequence when
+Copies go to the system clipboard, or through the OSC 52 escape sequence when
 there is none (over SSH, for example).

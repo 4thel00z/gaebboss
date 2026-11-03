@@ -38,6 +38,7 @@ pub enum Action {
     PrevHit,
     OpenYank,
     Yank(YankTarget),
+    Help,
     YankCancel,
     ResizeLeft,
     ResizeRight,
@@ -107,6 +108,7 @@ fn normal_action(key: KeyEvent) -> Action {
         KeyCode::Char(']') => Action::NextFinding,
         KeyCode::Char('[') => Action::PrevFinding,
         KeyCode::Char('y') => Action::OpenYank,
+        KeyCode::Char('?') => Action::Help,
         _ => Action::Noop,
     }
 }
@@ -137,6 +139,7 @@ mod tests {
         assert_eq!(normal(KeyCode::Char('m')), Action::ToggleMarkdown);
         assert_eq!(normal(KeyCode::Char(']')), Action::NextFinding);
         assert_eq!(normal(KeyCode::Char('y')), Action::OpenYank);
+        assert_eq!(normal(KeyCode::Char('?')), Action::Help);
         assert_eq!(normal(KeyCode::Char('x')), Action::Noop);
     }
 

@@ -11,6 +11,7 @@ use gaebboss_core::Document;
 use crate::clipboard::Transport;
 use crate::input::{Action, KeyContext, action};
 use crate::outline::{Outline, ROOT};
+use crate::theme::Theme;
 use crate::ui::{RIGHT_TOP_SPLIT, SPLIT_STEP, Splits, TREE_SPLIT};
 use crate::yank::{YankTarget, yank_text};
 
@@ -65,6 +66,8 @@ pub struct Search {
 pub struct Toast {
     pub text: String,
     pub ticks_left: u16,
+    /// Something went wrong or was not there, as opposed to a done action.
+    pub problem: bool,
 }
 
 /// The selected element's source, split into display lines.
@@ -93,7 +96,10 @@ pub struct App {
     pub markdown: bool,
     pub search: Search,
     pub yanking: bool,
+    /// The key overlay is open; the next key closes it.
+    pub help: bool,
     pub toast: Option<Toast>,
+    pub theme: Theme,
     pub splits: Splits,
     pub size: (u16, u16),
     pub should_quit: bool,
@@ -104,6 +110,23 @@ pub struct App {
 pub fn source_lines(bytes: &[u8], range: Range<usize>) -> Source {
     let end = range.end.min(range.start.saturating_add(SOURCE_LIMIT));
     let truncated = range.end.saturating_sub(end);
+    let indent = bytes
+        .get(..range.start)
+        .unwrap_or(&[])
+        .iter()
+        .rev()
+        .take_while(|b| **b == b' ' || **b == b'\t')
+        .count();
+    let dedent = |at: usize| {
+        let leading = bytes
+            .get(at..end)
+            .unwrap_or(&[])
+            .iter()
+            .take(indent)
+            .take_while(|b| **b == b' ' || **b == b'\t')
+            .count();
+        at + leading
+    };
     let mut lines = Vec::new();
     let mut start = range.start;
     for at in range.start..end {
@@ -111,7 +134,7 @@ pub fn source_lines(bytes: &[u8], range: Range<usize>) -> Source {
         let next = bytes.get(at + 1).copied();
         if byte == b'\n' {
             lines.push(start..at);
-            start = at + 1;
+            start = dedent(at + 1);
             continue;
         }
         if byte == b'>' && next == Some(b'<') && at + 1 < end {
@@ -160,7 +183,9 @@ impl App {
             markdown: false,
             search: Search::default(),
             yanking: false,
+            help: false,
             toast: None,
+            theme: Theme::default(),
             splits: Splits::default(),
             size,
             should_quit: false,
@@ -242,12 +267,25 @@ impl App {
         self.toast = Some(Toast {
             text: text.into(),
             ticks_left: TOAST_TICKS,
+            problem: false,
+        });
+    }
+
+    fn problem(&mut self, text: impl Into<String>) {
+        self.toast = Some(Toast {
+            text: text.into(),
+            ticks_left: TOAST_TICKS,
+            problem: true,
         });
     }
 
     pub fn update(&mut self, msg: Msg) -> Vec<Cmd> {
         match msg {
             Msg::Key(key) => {
+                if self.help {
+                    self.help = false;
+                    return Vec::new();
+                }
                 let intent = action(key, self.key_context());
                 if self.loading && intent != Action::Quit {
                     return Vec::new();
@@ -258,14 +296,13 @@ impl App {
             Msg::NoNativeClipboard { target, text } => return vec![Cmd::Osc52 { target, text }],
             Msg::Resize(width, height) => self.size = (width, height),
             Msg::Tick => self.tick(),
-            Msg::Copied { target, result } => {
-                let text = match result {
-                    Ok(Transport::Native) => format!("copied {}", target.name()),
-                    Ok(Transport::Osc52) => format!("copied {} via OSC 52", target.name()),
-                    Err(error) => format!("copy failed: {error}"),
-                };
-                self.toast(text);
-            }
+            Msg::Copied { target, result } => match result {
+                Ok(Transport::Native) => self.toast(format!("Copied {}", target.name())),
+                Ok(Transport::Osc52) => {
+                    self.toast(format!("Copied {} through the terminal", target.name()))
+                }
+                Err(error) => self.problem(format!("Could not copy {}: {error}", target.name())),
+            },
         }
         Vec::new()
     }
@@ -311,10 +348,15 @@ impl App {
                 self.search.editing = true;
                 self.search.query.clear();
             }
-            Action::SearchChar(c) => self.search.query.push(c),
+            Action::SearchChar(c) => {
+                self.search.query.push(c);
+                self.search.hits = self.matches();
+            }
             Action::SearchBackspace => {
                 self.search.query.pop();
+                self.search.hits = self.matches();
             }
+            Action::Help => self.help = true,
             Action::SearchCancel => self.search.editing = false,
             Action::SearchAccept => self.accept_search(),
             Action::NextHit => self.step_hit(true),
@@ -411,11 +453,9 @@ impl App {
             .iter()
             .position(|r| *r == self.selected)
             .unwrap_or(0);
-        let mut rotated: Vec<usize> = self.order[position + 1..]
-            .iter()
-            .chain(&self.order[..=position])
-            .copied()
-            .collect();
+        let after = self.order.get(position + 1..).unwrap_or(&[]);
+        let before = self.order.get(..=position).unwrap_or(&[]);
+        let mut rotated: Vec<usize> = after.iter().chain(before).copied().collect();
         if !forward {
             rotated.rotate_right(1);
             rotated.reverse();
@@ -429,21 +469,19 @@ impl App {
             .into_iter()
             .find(|i| self.outline.row(*i).is_some_and(|r| !r.findings.is_empty()));
         let Some(next) = next else {
-            self.toast("no findings");
+            self.toast("No findings in this bill");
             return;
         };
         self.select(next);
     }
 
-    fn accept_search(&mut self) {
-        self.search.editing = false;
+    /// Rows whose OZ, ID, label or long text hold the query, in tree order.
+    pub fn matches(&self) -> Vec<usize> {
         let query = self.search.query.trim().to_lowercase();
         if query.is_empty() {
-            self.search.hits.clear();
-            return;
+            return Vec::new();
         }
-        self.search.hits = self
-            .order
+        self.order
             .iter()
             .copied()
             .filter(|i| {
@@ -452,12 +490,20 @@ impl App {
                     .get(*i)
                     .is_some_and(|h| h.contains(&query))
             })
-            .collect();
+            .collect()
+    }
+
+    fn accept_search(&mut self) {
+        self.search.editing = false;
+        self.search.hits = self.matches();
+        if self.search.query.trim().is_empty() {
+            return;
+        }
         let Some(hit) = std::iter::once(self.selected)
             .chain(self.cycle_from_selection(true))
             .find(|i| self.search.hits.contains(i))
         else {
-            self.toast(format!("no match for {}", self.search.query));
+            self.problem(format!("Nothing matches \"{}\"", self.search.query));
             return;
         };
         self.search.current = self.search.hits.iter().position(|h| *h == hit).unwrap_or(0);
@@ -489,7 +535,7 @@ impl App {
             &self.target,
         );
         let Some(text) = text else {
-            self.toast(format!("nothing to yank: {}", target.name()));
+            self.problem(format!("This row has no {}", target.name()));
             return Vec::new();
         };
         vec![Cmd::Copy { target, text }]
