@@ -1,5 +1,17 @@
 # Changelog
 
+## [0.2.0](https://github.com/4thel00z/gaebboss/compare/v0.1.2...v0.2.0) (2026-11-03)
+
+
+### ⚠ BREAKING CHANGES
+
+* **cli:** --output is removed in favor of --out (-o unchanged). File and I/O errors exit 1 instead of 2; an invalid jq program or bad argument exits 2.
+
+### Features
+
+* **cli:** add tui, md, q, hex and skill; align flags and exit codes with pdfboss ([#4](https://github.com/4thel00z/gaebboss/issues/4)) ([a5ab851](https://github.com/4thel00z/gaebboss/commit/a5ab851719165d9fad05c1fc7fe9e4d1b023cd97))
+* **tui:** RAL palette, item card, highlighted XML, copy and keys popups ([#7](https://github.com/4thel00z/gaebboss/issues/7)) ([849dc94](https://github.com/4thel00z/gaebboss/commit/849dc94a60ef439d4a93499383bc613b29b88d27))
+
 ## [0.1.2](https://github.com/4thel00z/gaebboss/compare/v0.1.1...v0.1.2) (2026-11-01)
 
 
