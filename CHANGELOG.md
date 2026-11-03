@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.2.1](https://github.com/4thel00z/gaebboss/compare/v0.2.0...v0.2.1) (2026-11-03)
+
+
+### Bug Fixes
+
+* **core:** apply discounts, lump sums and alternative categories to totals ([#8](https://github.com/4thel00z/gaebboss/issues/8)) ([8671b39](https://github.com/4thel00z/gaebboss/commit/8671b39683a31d87165350e25e56948455766e7f))
+
 ## [0.2.0](https://github.com/4thel00z/gaebboss/compare/v0.1.2...v0.2.0) (2026-11-03)
 
 
