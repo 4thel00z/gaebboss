@@ -10,7 +10,8 @@ Look at a tender:
 ```bash
 gaebboss info tender.X83
 gaebboss items tender.X83
-gaebboss text tender.X83 --oz 01.02.0010 --markdown
+gaebboss md tender.X83 --oz 01.02.0010
+gaebboss tui tender.X83          # browse it: tree, inspector, XML, findings
 ```
 
 Price it:

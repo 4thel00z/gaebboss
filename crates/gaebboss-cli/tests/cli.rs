@@ -236,3 +236,166 @@ fn bid_prices_accept_semicolons_and_decimal_commas() {
         .success()
         .stdout(predicate::str::contains("\t12.500\t"));
 }
+
+#[test]
+fn md_prints_the_bill_with_category_headings() {
+    gaebboss()
+        .args(["md", &fixture("3.3/bvbs_bauausfuehrung.x83")])
+        .assert()
+        .success()
+        .stdout(predicate::str::starts_with("# BVBS GAEB Bauausf."))
+        .stdout(predicate::str::contains("## 001 Bauhauptgewerke"))
+        .stdout(predicate::str::contains(
+            "#### 001.001.0010 Baustelleneinrichtung",
+        ));
+    gaebboss()
+        .args([
+            "md",
+            &fixture("3.3/bvbs_bauausfuehrung.x83"),
+            "--oz",
+            "001.001.0010",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::starts_with("Baustelleneinrichtung"));
+}
+
+#[test]
+fn text_without_oz_prints_every_item() {
+    let output = gaebboss()
+        .args(["text", &fixture("3.3/bvbs_bauausfuehrung.x83")])
+        .output()
+        .unwrap();
+    assert!(output.status.success());
+    let text = String::from_utf8(output.stdout).unwrap();
+    assert!(text.starts_with("001.001.0010  "), "{text}");
+    assert!(text.contains("\n\n001.001.00101  "), "{text}");
+}
+
+#[test]
+fn q_runs_jq_and_exits_two_on_a_bad_program() {
+    gaebboss()
+        .args([
+            "q",
+            &fixture("3.3/bvbs_bauausfuehrung.x84"),
+            ".items[0].oz",
+            "-r",
+        ])
+        .assert()
+        .success()
+        .stdout("001.001.0010\n");
+    gaebboss()
+        .args([
+            "q",
+            &fixture("3.3/bvbs_bauausfuehrung.x84"),
+            ".boq.totals.total",
+        ])
+        .assert()
+        .success()
+        .stdout("\"2000000.00\"\n");
+    gaebboss()
+        .args(["q", &fixture("3.3/bvbs_bauausfuehrung.x84"), ".items["])
+        .assert()
+        .code(2)
+        .stderr(predicate::str::contains("jq: "));
+    gaebboss()
+        .args([
+            "q",
+            &fixture("3.3/bvbs_bauausfuehrung.x84"),
+            "error(\"boom\")",
+        ])
+        .assert()
+        .code(1)
+        .stderr(predicate::str::contains("boom"));
+}
+
+#[test]
+fn hex_dumps_one_element() {
+    gaebboss()
+        .args([
+            "hex",
+            &fixture("3.3/bvbs_bauausfuehrung.x84"),
+            "id:ID02BED3D8",
+            "--width",
+            "8",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains(
+            "  3c 49 74 65 6d 20 49 44  |<Item ID|",
+        ));
+    gaebboss()
+        .args(["hex", &fixture("3.3/bvbs_bauausfuehrung.x84"), "obj:1"])
+        .assert()
+        .code(1)
+        .stderr(predicate::str::contains("unknown selector"));
+}
+
+#[test]
+fn hex_annotate_labels_items() {
+    gaebboss()
+        .args([
+            "hex",
+            &fixture("3.3/bvbs_bauausfuehrung.x84"),
+            "oz:001.001",
+            "--annotate",
+        ])
+        .assert()
+        .success()
+        .stdout(predicate::str::contains("── BoQCtgy 001.001"))
+        .stdout(predicate::str::contains(
+            "── Item 001.001.0010 ID02BED3D8 ──",
+        ));
+}
+
+#[test]
+fn a_missing_file_exits_one() {
+    gaebboss()
+        .args(["info", "does-not-exist.x83"])
+        .assert()
+        .code(1)
+        .stderr(predicate::str::starts_with("gaebboss: does-not-exist.x83"));
+}
+
+#[test]
+fn output_is_now_out() {
+    let dir = tempfile::tempdir().unwrap();
+    let out = dir.path().join("out.X84");
+    gaebboss()
+        .args([
+            "roundtrip",
+            &fixture("3.3/bvbs_bauausfuehrung.x84"),
+            "--out",
+            out.to_str().unwrap(),
+        ])
+        .assert()
+        .success();
+    gaebboss()
+        .args([
+            "roundtrip",
+            &fixture("3.3/bvbs_bauausfuehrung.x84"),
+            "--output",
+            out.to_str().unwrap(),
+        ])
+        .assert()
+        .code(2);
+}
+
+#[test]
+fn tui_without_a_terminal_says_so() {
+    gaebboss()
+        .args(["tui", &fixture("3.3/bvbs_bauausfuehrung.x84")])
+        .write_stdin("")
+        .assert()
+        .failure()
+        .stderr(predicate::str::contains("interactive terminal"));
+}
+
+#[test]
+fn skill_show_prints_the_bundled_skill() {
+    gaebboss()
+        .args(["skill", "show"])
+        .assert()
+        .success()
+        .stdout(predicate::str::starts_with("---\nname: gaebboss\n"));
+}

@@ -1,6 +1,6 @@
 [package]
 name = "gaebboss-cli"
-description = "Command line for GAEB DA XML: inspect, export, validate, round-trip and price tenders"
+description = "Command line for GAEB DA XML: inspect, export, query, validate, round-trip and price tenders, plus the hex/q/tui explorer"
 version.workspace = true
 edition.workspace = true
 rust-version.workspace = true
@@ -17,8 +17,13 @@ path = "src/main.rs"
 
 [dependencies]
 gaebboss-core = { workspace = true }
+gaebboss-tui = { workspace = true }
 clap = { version = "4", features = ["derive"] }
 serde_json = { workspace = true }
+tokio = { version = "1", features = ["rt", "time"] }
+jaq-core = "3"
+jaq-std = "3"
+jaq-json = { version = "2", features = ["serde"] }
 
 [dev-dependencies]
 assert_cmd = "2"

@@ -7,6 +7,8 @@ full reference. The entry points:
 |---|---|
 | `Document::open`, `Document::parse`, `Document::parse_named` | read a file; the name decides the phase when nothing inside does |
 | `Document::items`, `categories`, `markup_items` | navigation with `Oz`, `ItemKind`, texts and prices |
+| `Document::entries` | categories, items and markup items together in document order, as `boq::Entry` |
+| `Document::element_range` | where an element sits in `Document::bytes` |
 | `Document::computed_totals`, `declared_total` | sums per Fachdokumentation 4.6.17 |
 | `text::plain`, `text::markdown`, `text::complements` | projections of any text node |
 | `validate::validate`, `validate::validate_against_tender` | findings |
