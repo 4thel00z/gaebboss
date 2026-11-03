@@ -39,6 +39,21 @@ fn musterdatei_31_x83_has_no_errors() {
 }
 
 #[test]
+fn musterdatei_31_x86_totals_add_up() {
+    let found: Vec<(&str, Vec<String>)> = [
+        "3.1/Musterdatei_3.1_2008-001.X86",
+        "3.1/Musterdatei_3.1_2008-002.X86",
+        "3.1/Musterdatei_3.1_2008-003.X86",
+        "3.1/Musterdatei_3.1_2008-004.X86",
+    ]
+    .into_iter()
+    .map(|rel| (rel, errors(&fixture(rel))))
+    .filter(|(_, errors)| !errors.is_empty())
+    .collect();
+    assert!(found.is_empty(), "{found:#?}");
+}
+
+#[test]
 fn bvbs_x84_matches_its_x83() {
     let tender = fixture("3.3/bvbs_bauausfuehrung.x83");
     let bid = fixture("3.3/bvbs_bauausfuehrung.x84");

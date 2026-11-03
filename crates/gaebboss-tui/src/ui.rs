@@ -541,8 +541,8 @@ fn category_lines(app: &App, row: &Row, category: &CategoryFacts) -> Vec<Line<'s
     ]
 }
 
-/// `quantity unit × unit price = total`, the total checked against quantity
-/// times price.
+/// `quantity unit × unit price less discount % = total`, the total checked
+/// against quantity times price less the discount.
 fn price_line(theme: &Theme, item: &ItemFacts) -> Line<'static> {
     let mut spans = Vec::new();
     if let Some(quantity) = item.quantity {
@@ -558,6 +558,10 @@ fn price_line(theme: &Theme, item: &ItemFacts) -> Line<'static> {
     };
     spans.push(Span::styled("  ×  ", theme.muted()));
     spans.push(Span::raw(grouped(price)));
+    if let Some(discount) = item.discount {
+        spans.push(Span::styled("  less  ", theme.muted()));
+        spans.push(Span::raw(format!("{} %", grouped(discount))));
+    }
     if item.total.is_none() && item.computed.is_none() {
         return Line::from(spans);
     }

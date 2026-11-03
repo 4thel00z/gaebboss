@@ -201,6 +201,32 @@ fn search_reveals_hits_and_cycles_through_them() {
 }
 
 #[test]
+fn a_discounted_item_shows_its_discount_and_adds_up() {
+    let mut app = app("3.1/Musterdatei_3.1_2008-001.X86");
+    let index = app
+        .outline
+        .rows
+        .iter()
+        .position(|r| r.oz == "1.10.10.0060")
+        .unwrap();
+    app.select(index);
+    let lines: Vec<String> = ui::inspector_lines(&app, 60)
+        .iter()
+        .map(|l| l.to_string())
+        .collect();
+    assert!(
+        lines
+            .iter()
+            .any(|l| l.contains("×  20.000  less  10.00 %  =  720.00  ✓")),
+        "{lines:?}"
+    );
+    assert!(
+        !lines.iter().any(|l| l.starts_with("Findings ─")),
+        "{lines:?}"
+    );
+}
+
+#[test]
 fn findings_jump_to_the_flagged_row() {
     let text = std::fs::read_to_string(fixture("3.3/bvbs_bauausfuehrung.x84"))
         .unwrap()

@@ -16,7 +16,11 @@ it and use the navigation layer instead:
   totals.
 - `doc.markup_items()` yields Zuschlagspositionen.
 - `doc.computed_totals()` sums items per Fachdokumentation 4.6.17 and puts
-  the result next to what the file declares.
+  the result next to what the file declares. A category passes its lump sum
+  (`TotalLSUM`) or its sum less its discount up to its parent; an
+  alternative category (`ALNBSerNo` other than 0) passes nothing.
+  `ItemRef::computed_total()` is quantity times unit price less the item's
+  `DiscountPcnt`, and none for a not-applicable item.
 
 ## Kinds of items
 

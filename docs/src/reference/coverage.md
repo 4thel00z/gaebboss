@@ -7,12 +7,12 @@ texts, bids, validation, JSON) also interprets.
 
 | elements | read and written | interpreted by the semantic layer |
 |---|---|---|
-| 525 | 525 | 112 |
+| 525 | 525 | 115 |
 
 | element | in types | semantic | restricted in phases |
 |---|---|---|---|
-| `ALNBGroupNo` | `tgBoQCtgy` |  | X52 X80 X81 X82 X83 X85 X86 X87 X89 X89B |
-| `ALNBSerNo` | `tgBoQCtgy` |  | X52 X80 X81 X82 X83 X85 X86 X87 X89 X89B |
+| `ALNBGroupNo` | `tgBoQCtgy` | yes | X52 X80 X81 X82 X83 X85 X86 X87 X89 X89B |
+| `ALNBSerNo` | `tgBoQCtgy` | yes | X52 X80 X81 X82 X83 X85 X86 X87 X89 X89B |
 | `ALNGroupNo` | `tgItem`, `tgMarkupItem` | yes | X52 X80 X81 X82 X83 X85 X86 X87 X89 X89B |
 | `ALNSerNo` | `tgItem`, `tgMarkupItem` | yes | X52 X80 X81 X82 X83 X85 X86 X87 X89 X89B |
 | `AQU` | `tgOrderItem` |  |  |
@@ -461,7 +461,7 @@ texts, bids, validation, JSON) also interprets.
 | `TotContrVal` | `tgMastAgrInfo` |  |  |
 | `Total` | `tgInvoiceMadeOut`, `tgInvoiceShare`, `tgPaymentMade`, `tgTotals` | yes |  |
 | `TotalGross` | `tgInvoice`, `tgTotals` | yes | X89 |
-| `TotalLSUM` | `tgTotals` |  |  |
+| `TotalLSUM` | `tgTotals` | yes |  |
 | `TotalNet` | `tgTotals` |  |  |
 | `TotalNetPart` | `tgVATPart` |  |  |
 | `TotalNetUpComp` | `tgTotals` |  |  |
