@@ -55,8 +55,9 @@ pub struct ItemFacts {
     pub quantity: Option<Decimal>,
     pub unit: String,
     pub unit_price: Option<Decimal>,
+    pub discount: Option<Decimal>,
     pub total: Option<Decimal>,
-    /// Quantity times unit price rounded to cents.
+    /// Quantity times unit price rounded to cents, less the discount.
     pub computed: Option<Decimal>,
     pub vat: Option<Decimal>,
 }
@@ -284,6 +285,7 @@ fn item_row(i: &ItemRef<'_>) -> Row {
         quantity: i.quantity(),
         unit: i.unit().unwrap_or("").trim().to_string(),
         unit_price: i.unit_price(),
+        discount: i.discount_percent(),
         total: i.total(),
         computed: i.computed_total(),
         vat: i.vat_percent(),

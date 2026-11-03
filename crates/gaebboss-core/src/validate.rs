@@ -257,15 +257,19 @@ fn items(doc: &Document, out: &mut Vec<Finding>) {
         digits(&item, "IT", item.total(), 2, out);
         digits(&item, "VAT", item.vat_percent(), 2, out);
         if let (Some(qty), Some(up), Some(it)) = (item.quantity(), item.unit_price(), item.total())
-            && let Some(expected) = item_total(qty, up)
+            && let (Some(product), Some(expected)) = (item_total(qty, up), item.computed_total())
             && expected != it
         {
+            let discount = item
+                .discount_percent()
+                .map(|pct| format!(", less {pct} % = {expected}"))
+                .unwrap_or_default();
             out.push(finding(
                 Severity::Error,
                 FindingCode::ItemTotalMismatch,
                 node,
                 Some(oz.clone()),
-                format!("IT is {it} but Qty × UP = {qty} × {up} = {expected}"),
+                format!("IT is {it} but Qty × UP = {qty} × {up} = {product}{discount}"),
             ));
         }
         if x84 && item.not_offered() && item.unit_price().is_some() {
@@ -504,6 +508,27 @@ mod tests {
             .unwrap();
         assert_eq!(mismatch.oz.as_deref(), Some("01.0010"));
         assert!(mismatch.message.contains("3.00"), "{}", mismatch.message);
+    }
+
+    #[test]
+    fn item_total_mismatch_counts_the_item_discount() {
+        let doc = x84(
+            "<Item ID=\"i1\" RNoPart=\"10\"><Qty>40.000</Qty><UP>20.000</UP><DiscountPcnt>10.00</DiscountPcnt><IT>720.00</IT></Item><Item ID=\"i2\" RNoPart=\"20\"><Qty>40.000</Qty><UP>20.000</UP><DiscountPcnt>10.00</DiscountPcnt><IT>800.00</IT></Item>",
+        );
+        let found = errors(&doc);
+        let mismatches: Vec<&Finding> = found
+            .iter()
+            .filter(|f| f.code == FindingCode::ItemTotalMismatch)
+            .collect();
+        assert_eq!(mismatches.len(), 1, "{found:?}");
+        assert_eq!(mismatches[0].oz.as_deref(), Some("01.0020"));
+        assert!(
+            mismatches[0]
+                .message
+                .ends_with("= 800.00, less 10.00 % = 720.00"),
+            "{}",
+            mismatches[0].message
+        );
     }
 
     #[test]

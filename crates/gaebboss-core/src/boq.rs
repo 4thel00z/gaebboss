@@ -3,8 +3,8 @@
 //! and totals.
 
 use crate::Document;
-use crate::decimal::{Decimal, item_total};
-use crate::model::{BoQ, BoQBody, BoQCtgy, Item, MarkupItem, Provis};
+use crate::decimal::{Decimal, item_total, total_after_discount};
+use crate::model::{BoQ, BoQBody, BoQCtgy, Item, MarkupItem, Provis, Totals};
 use crate::oz::{Breakdown, Oz};
 use crate::text::{Complement, complements, markdown, plain};
 
@@ -102,9 +102,23 @@ impl ItemRef<'_> {
         self.item.it
     }
 
-    /// Quantity times unit price rounded to cents, when both are present.
+    /// The item's percentage discount (`DiscountPcnt`).
+    pub fn discount_percent(&self) -> Option<Decimal> {
+        self.item.discount_pcnt
+    }
+
+    /// Quantity times unit price rounded to cents, less the item's discount
+    /// and rounded again (Fachdokumentation 4.6.17); none for a
+    /// not-applicable item, which carries no total to check.
     pub fn computed_total(&self) -> Option<Decimal> {
-        item_total(self.item.qty?, self.item.up?)
+        if self.item.not_appl == Some(true) {
+            return None;
+        }
+        let total = item_total(self.item.qty?, self.item.up?)?;
+        let Some(pct) = self.item.discount_pcnt else {
+            return Some(total);
+        };
+        total_after_discount(total, pct)
     }
 
     pub fn vat_percent(&self) -> Option<Decimal> {
@@ -145,6 +159,31 @@ pub fn counts_towards_total(item: &Item) -> bool {
         return false;
     }
     !(item.aln_group_no.is_some() && item.aln_ser_no.is_some_and(|serial| serial != 0))
+}
+
+/// Whether a category's total belongs in its parent's sum: an alternative
+/// category (`ALNBSerNo` other than 0) stays out like an alternative item.
+fn category_counts_towards_total(ctgy: &BoQCtgy) -> bool {
+    !(ctgy.alnb_group_no.is_some() && ctgy.alnb_ser_no.is_some_and(|serial| serial != 0))
+}
+
+/// What a category adds to its parent: its lump sum (`TotalLSUM`) when it
+/// has one, else its sum less its discount (`DiscountPcnt` rounded to cents,
+/// or `DiscountAmt`). None only on overflow.
+fn carried_total(totals: Option<&Totals>, sum: Decimal) -> Option<Decimal> {
+    let Some(totals) = totals else {
+        return Some(sum);
+    };
+    if let Some(lump) = totals.total_lsum {
+        return Some(lump);
+    }
+    if let Some(pct) = totals.discount_pcnt {
+        return total_after_discount(sum, pct);
+    }
+    if let Some(amount) = totals.discount_amt {
+        return sum.checked_sub(amount);
+    }
+    Some(sum)
 }
 
 fn detail_node(item: &Item) -> Option<crate::tape::NodeId> {
@@ -217,6 +256,9 @@ pub struct CategoryTotal {
 /// Sums per Fachdokumentation 4.6.17 next to what the file declares. Only
 /// written totals (`IT`) are summed: an item without one carries no
 /// Gesamtbetrag ("Nur Einh.-Preis"), whatever its quantity and price say.
+/// A category's `computed` is the sum of what its children carry; it carries
+/// its lump sum or its sum less its discount to its parent, and an
+/// alternative category carries nothing.
 #[derive(Clone, Debug, Default, PartialEq, Eq)]
 pub struct BoqTotals {
     pub categories: Vec<CategoryTotal>,
@@ -354,10 +396,15 @@ fn sum_body<'a>(
         });
         path.pop();
         parts.pop();
-        if let Some(c) = computed {
-            sum = sum.checked_add(c)?;
-            any = true;
+        if !category_counts_towards_total(ctgy) {
+            continue;
         }
+        let totals = ctgy.totals.as_ref();
+        let Some(own) = computed.or(totals.and_then(|t| t.total_lsum)) else {
+            continue;
+        };
+        sum = sum.checked_add(carried_total(totals, own)?)?;
+        any = true;
     }
     if let Some(list) = &body.itemlist {
         for item in &list.item {
@@ -658,6 +705,67 @@ mod tests {
         assert_eq!(items[0].unit(), Some("kg"));
         assert_eq!(items[0].total(), None);
         assert_eq!(items[0].computed_total(), None);
+    }
+
+    #[test]
+    fn item_discount_comes_off_the_computed_total() {
+        let doc = tender(
+            "<Item ID=\"a\" RNoPart=\"10\"><Qty>40.000</Qty><QU>m</QU><UP>20.000</UP><DiscountPcnt>10.00</DiscountPcnt><IT>720.00</IT></Item><Item ID=\"b\" RNoPart=\"20\"><NotAppl>Yes</NotAppl><Qty>126.646</Qty><QU>m</QU><UP>10.123</UP><IT>0.00</IT></Item>",
+        );
+        let items: Vec<ItemRef<'_>> = doc.items().collect();
+        assert_eq!(items[0].discount_percent(), Some(d("10.00")));
+        assert_eq!(items[0].computed_total(), Some(d("720.00")));
+        assert_eq!(items[1].computed_total(), None);
+    }
+
+    fn priced(id: &str, total: &str) -> String {
+        format!(
+            "<BoQBody><Itemlist><Item ID=\"{id}\" RNoPart=\"10\"><Qty>1.000</Qty><QU>psch</QU><UP>{total}</UP><IT>{total}</IT></Item></Itemlist></BoQBody>"
+        )
+    }
+
+    #[test]
+    fn a_category_carries_its_discounted_or_lump_sum_total_and_an_alternative_nothing() {
+        let categories = [
+            format!(
+                "<BoQCtgy ID=\"c1\" RNoPart=\"1\">{}<Totals><Total>100.00</Total><DiscountPcnt>10.00</DiscountPcnt><TotAfterDisc>90.00</TotAfterDisc></Totals></BoQCtgy>",
+                priced("a", "100.00")
+            ),
+            format!(
+                "<BoQCtgy ID=\"c2\" RNoPart=\"2\">{}<Totals><Total>50.00</Total><DiscountAmt>5.00</DiscountAmt><TotAfterDisc>45.00</TotAfterDisc></Totals></BoQCtgy>",
+                priced("b", "50.00")
+            ),
+            format!(
+                "<BoQCtgy ID=\"c3\" RNoPart=\"3\">{}<Totals><Total>30.00</Total><TotalLSUM>20.00</TotalLSUM></Totals></BoQCtgy>",
+                priced("c", "30.00")
+            ),
+            format!(
+                "<BoQCtgy ID=\"c4\" RNoPart=\"4\"><ALNBGroupNo>1</ALNBGroupNo><ALNBSerNo>1</ALNBSerNo>{}<Totals><Total>40.00</Total></Totals></BoQCtgy>",
+                priced("e", "40.00")
+            ),
+        ]
+        .concat();
+        let xml = format!(
+            "<GAEB xmlns=\"http://www.gaeb.de/GAEB_DA_XML/DA86/3.3\"><Award><DP>86</DP><BoQ ID=\"b\"><BoQInfo><BoQBkdn><Type>BoQLevel</Type><Length>1</Length><Num>Yes</Num></BoQBkdn><BoQBkdn><Type>BoQLevel</Type><Length>1</Length><Num>Yes</Num></BoQBkdn><BoQBkdn><Type>Item</Type><Length>2</Length><Num>Yes</Num></BoQBkdn><Totals><Total>155.00</Total></Totals></BoQInfo><BoQBody><BoQCtgy ID=\"top\" RNoPart=\"1\"><BoQBody>{categories}</BoQBody><Totals><Total>155.00</Total></Totals></BoQCtgy></BoQBody></BoQ></Award></GAEB>"
+        );
+        let doc = Document::parse(xml.as_bytes()).unwrap();
+        let totals = doc.computed_totals();
+        let computed: Vec<(&str, Option<Decimal>)> = totals
+            .categories
+            .iter()
+            .map(|c| (c.oz.as_str(), c.computed))
+            .collect();
+        assert_eq!(
+            computed,
+            [
+                ("1.1", Some(d("100.00"))),
+                ("1.2", Some(d("50.00"))),
+                ("1.3", Some(d("30.00"))),
+                ("1.4", Some(d("40.00"))),
+                ("1", Some(d("155.00"))),
+            ]
+        );
+        assert_eq!(totals.boq, Some(d("155.00")));
     }
 
     #[test]
