@@ -3,7 +3,7 @@
 //! Fachdokumentation prescribes, written strictly in the tender's version.
 
 use crate::Document;
-use crate::boq::{ItemKind, counts_towards_total};
+use crate::boq::{ItemKind, category_counts_towards_total, counts_towards_total};
 use crate::decimal::{Decimal, item_total, total_after_discount};
 use crate::document::Resolver;
 use crate::model::{
@@ -554,6 +554,9 @@ fn sum_body(body: &mut BoQBody) -> Result<Decimal, BidError> {
     let mut sum = Decimal::new(0, 2);
     for ctgy in &mut body.boq_ctgy {
         let total = sum_category(ctgy)?;
+        if !category_counts_towards_total(ctgy) {
+            continue;
+        }
         sum = sum.checked_add(total).ok_or(BidError::Overflow)?;
     }
     if let Some(list) = body.itemlist.as_mut() {
@@ -623,6 +626,27 @@ mod tests {
     fn tender() -> Document {
         let xml = "<GAEB xmlns=\"http://www.gaeb.de/GAEB_DA_XML/DA83/3.3\"><GAEBInfo><Version>3.3</Version><VersDate>2021-05</VersDate><Date>2026-01-01</Date></GAEBInfo><PrjInfo><NamePrj>P</NamePrj><Cur>EUR</Cur></PrjInfo><Award><DP>83</DP><AwardInfo><Cur>EUR</Cur></AwardInfo><OWN><Address><Name1>Owner</Name1><Street>s</Street><PCode>1</PCode><City>c</City></Address></OWN><BoQ ID=\"b\"><BoQInfo><Name>LV</Name><LblBoQ>T</LblBoQ><OutlCompl>AllTxt</OutlCompl><BoQBkdn><Type>BoQLevel</Type><Length>2</Length><Num>Yes</Num></BoQBkdn><BoQBkdn><Type>Item</Type><Length>4</Length><Num>Yes</Num></BoQBkdn></BoQInfo><BoQBody><BoQCtgy ID=\"c1\" RNoPart=\"1\"><LblTx><p><span>Rohbau</span></p></LblTx><BoQBody><Itemlist><Item ID=\"i1\" RNoPart=\"10\"><Qty>73.789</Qty><QU>m3</QU><Description><CompleteText><DetailTxt><Text><p><span>Beton </span><TextComplement MarkLbl=\"1\" Kind=\"Bidder\" Empty=\"Yes\"><ComplCaption><span>Fabrikat</span></ComplCaption><ComplBody/></TextComplement></p></Text></DetailTxt><OutlineText><OutlTxt><TextOutlTxt><p><span>Beton</span></p></TextOutlTxt></OutlTxt></OutlineText></CompleteText></Description></Item><Item ID=\"i2\" RNoPart=\"20\"><QtyTBD>Yes</QtyTBD><QU>kg</QU></Item><Item ID=\"i3\" RNoPart=\"30\"><Provis>WithoutTotal</Provis><Qty>5.000</Qty><QU>St</QU></Item><Item ID=\"i4\" RNoPart=\"40\"><Qty>1.000</Qty><QU>psch</QU><LumpSumItem>Yes</LumpSumItem></Item></Itemlist></BoQBody></BoQCtgy></BoQBody></BoQ></Award></GAEB>";
         Document::parse(xml.as_bytes()).unwrap()
+    }
+
+    #[test]
+    fn an_alternative_category_keeps_its_total_but_stays_out_of_the_bill() {
+        let body = "<BoQCtgy ID=\"c1\" RNoPart=\"1\"><BoQBody><Itemlist><Item ID=\"i1\" RNoPart=\"10\"><Qty>2.000</Qty><QU>m</QU></Item></Itemlist></BoQBody></BoQCtgy><BoQCtgy ID=\"c2\" RNoPart=\"2\"><ALNBGroupNo>1</ALNBGroupNo><ALNBSerNo>1</ALNBSerNo><BoQBody><Itemlist><Item ID=\"i2\" RNoPart=\"10\"><Qty>3.000</Qty><QU>m</QU></Item></Itemlist></BoQBody></BoQCtgy>";
+        let xml = format!(
+            "<GAEB xmlns=\"http://www.gaeb.de/GAEB_DA_XML/DA83/3.3\"><GAEBInfo><Version>3.3</Version><VersDate>2021-05</VersDate><Date>2026-01-01</Date></GAEBInfo><PrjInfo><NamePrj>P</NamePrj><Cur>EUR</Cur></PrjInfo><Award><DP>83</DP><AwardInfo><Cur>EUR</Cur></AwardInfo><BoQ ID=\"b\"><BoQInfo><Name>LV</Name><BoQBkdn><Type>BoQLevel</Type><Length>2</Length><Num>Yes</Num></BoQBkdn><BoQBkdn><Type>Item</Type><Length>4</Length><Num>Yes</Num></BoQBkdn></BoQInfo><BoQBody>{body}</BoQBody></BoQ></Award></GAEB>"
+        );
+        let tender = Document::parse(xml.as_bytes()).unwrap();
+        let mut bid = Bid::from_tender(&tender, bidder()).unwrap();
+        bid.price("i1", d("10")).unwrap();
+        bid.price("i2", d("10")).unwrap();
+        let doc = bid.finish().unwrap();
+        let declared: Vec<Option<Decimal>> = doc
+            .computed_totals()
+            .categories
+            .iter()
+            .map(|c| c.declared)
+            .collect();
+        assert_eq!(declared, [Some(d("20.00")), Some(d("30.00"))]);
+        assert_eq!(doc.declared_total(), Some(d("20.00")));
     }
 
     #[test]

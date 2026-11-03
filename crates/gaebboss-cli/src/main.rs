@@ -16,7 +16,7 @@ use gaebboss_core::Document;
 use gaebboss_core::bid::{Bid, Bidder};
 use gaebboss_core::decimal::Decimal;
 use gaebboss_core::json::to_json;
-use gaebboss_core::validate::{Severity, validate, validate_against_tender};
+use gaebboss_core::validate::{Severity, validate, validate_with_tender};
 use gaebboss_core::version::{Phase, Version};
 use gaebboss_core::write::WriteOptions;
 
@@ -149,7 +149,8 @@ enum Command {
     Validate {
         /// Path to the GAEB file.
         file: PathBuf,
-        /// The tender this bid answers.
+        /// The tender this bid answers; also tells the totals which items
+        /// and categories are alternatives or not applicable.
         #[arg(long)]
         tender: Option<PathBuf>,
     },
@@ -273,10 +274,10 @@ fn run(command: Command) -> Result<ExitCode, Failure> {
         }
         Command::Validate { file, tender } => {
             let doc = open(&file)?;
-            let mut findings = validate(&doc);
-            if let Some(tender) = tender {
-                findings.extend(validate_against_tender(&doc, &open(&tender)?));
-            }
+            let findings = match tender {
+                Some(tender) => validate_with_tender(&doc, &open(&tender)?),
+                None => validate(&doc),
+            };
             let errors = findings
                 .iter()
                 .filter(|f| f.severity == Severity::Error)

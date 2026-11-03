@@ -11,7 +11,7 @@ full reference. The entry points:
 | `Document::element_range` | where an element sits in `Document::bytes` |
 | `Document::computed_totals`, `declared_total` | sums per Fachdokumentation 4.6.17 |
 | `text::plain`, `text::markdown`, `text::complements` | projections of any text node |
-| `validate::validate`, `validate::validate_against_tender` | findings |
+| `validate::validate`, `validate::validate_with_tender`, `validate::validate_against_tender` | findings |
 | `Document::write`, `Document::write_with_report`, `WriteOptions` | XML out, per version and phase |
 | `bid::Bid` | X83 to X84 |
 | `json::to_json` | the document as JSON with string decimals |

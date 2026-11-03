@@ -7,7 +7,7 @@ use std::collections::HashMap;
 use gaebboss_core::Document;
 use gaebboss_core::bid::{Bid, Bidder};
 use gaebboss_core::decimal::Decimal;
-use gaebboss_core::validate::{Severity, validate_against_tender};
+use gaebboss_core::validate::{Severity, validate_against_tender, validate_with_tender};
 
 fn fixture(rel: &str) -> Document {
     let path = format!(
@@ -17,10 +17,9 @@ fn fixture(rel: &str) -> Document {
     Document::open(std::path::Path::new(&path)).unwrap()
 }
 
-#[test]
-fn bvbs_x83_priced_like_its_x84_reproduces_the_official_totals() {
-    let tender = fixture("3.3/bvbs_bauausfuehrung.x83");
-    let official = fixture("3.3/bvbs_bauausfuehrung.x84");
+/// The tender priced with the unit prices, free quantities and markups of
+/// the official bid.
+fn priced_like(tender: &Document, official: &Document) -> Document {
     let prices: HashMap<String, (Option<Decimal>, Option<Decimal>)> = official
         .items()
         .map(|i| (i.oz.compact(), (i.unit_price(), i.quantity())))
@@ -35,7 +34,7 @@ fn bvbs_x83_priced_like_its_x84_reproduces_the_official_totals() {
         email: None,
         bidder_no: None,
     };
-    let mut bid = Bid::from_tender(&tender, bidder).unwrap();
+    let mut bid = Bid::from_tender(tender, bidder).unwrap();
     let ids: Vec<(String, String)> = tender
         .items()
         .map(|i| (i.id().to_string(), i.oz.compact()))
@@ -65,7 +64,14 @@ fn bvbs_x83_priced_like_its_x84_reproduces_the_official_totals() {
             bid.markup(id, *base, *pct).unwrap();
         }
     }
-    let doc = bid.finish().unwrap();
+    bid.finish().unwrap()
+}
+
+#[test]
+fn bvbs_x83_priced_like_its_x84_reproduces_the_official_totals() {
+    let tender = fixture("3.3/bvbs_bauausfuehrung.x83");
+    let official = fixture("3.3/bvbs_bauausfuehrung.x84");
+    let doc = priced_like(&tender, &official);
     let computed = doc.computed_totals();
     let official_totals = official.computed_totals();
     for (ours, theirs) in computed.categories.iter().zip(&official_totals.categories) {
@@ -80,4 +86,35 @@ fn bvbs_x83_priced_like_its_x84_reproduces_the_official_totals() {
     );
     let bytes = doc.write(&doc.x84_options()).unwrap();
     assert!(Document::parse(&bytes).unwrap().phase() == Some(gaebboss_core::version::Phase::X84));
+}
+
+#[test]
+fn musterdatei_x83_priced_like_its_x84_leaves_the_alternative_category_out() {
+    let tender = fixture("3.1/Musterdatei_3.1_2008-001.X83");
+    let official = fixture("3.1/Musterdatei_3.1_2008-001.X84");
+    let priced = priced_like(&tender, &official);
+    let doc = Document::parse(&priced.write(&priced.x84_options()).unwrap()).unwrap();
+    let categories = doc.computed_totals().categories;
+    let declared = |oz: &str| {
+        categories
+            .iter()
+            .find(|c| c.oz == oz)
+            .and_then(|c| c.declared)
+            .unwrap()
+    };
+    let counted = categories
+        .iter()
+        .filter(|c| c.depth == 2 && c.oz.starts_with("1.10.") && c.oz != "1.10.40")
+        .filter_map(|c| c.declared)
+        .fold(Decimal::new(0, 2), |sum, total| {
+            sum.checked_add(total).unwrap()
+        });
+    assert_eq!(declared("1.10.40"), Decimal::parse("1212.00").unwrap());
+    assert_eq!(declared("1.10"), counted);
+    let errors: Vec<String> = validate_with_tender(&doc, &tender)
+        .into_iter()
+        .filter(|f| f.severity == Severity::Error)
+        .map(|f| f.message)
+        .collect();
+    assert!(errors.is_empty(), "{errors:#?}");
 }

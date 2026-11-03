@@ -8,7 +8,7 @@ pip install gaebboss
 parses with the GIL released; `data` takes `bytes`, `bytearray`, `memoryview`
 or any other buffer and copies it once. Everything it returns is a plain object:
 `items()`, `categories()`, `markup_items()`, `boq`, `project`, `warnings`,
-`validate()`, `validate_against(tender)`, `to_json()`, `write(...)` and
+`validate(tender=None)`, `validate_against(tender)`, `to_json()`, `write(...)` and
 `write_report(...)`. Every GAEB number is a `decimal.Decimal` built from its
 exact text; passing a float to a bid raises `GaebError`.
 

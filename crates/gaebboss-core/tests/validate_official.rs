@@ -2,7 +2,9 @@
 #![allow(clippy::unwrap_used, clippy::expect_used, clippy::panic)]
 
 use gaebboss_core::Document;
-use gaebboss_core::validate::{Severity, validate, validate_against_tender};
+use gaebboss_core::validate::{
+    Finding, Severity, validate, validate_against_tender, validate_with_tender,
+};
 
 fn fixture(rel: &str) -> Document {
     let path = format!(
@@ -12,12 +14,35 @@ fn fixture(rel: &str) -> Document {
     Document::open(std::path::Path::new(&path)).unwrap()
 }
 
-fn errors(doc: &Document) -> Vec<String> {
-    validate(doc)
+fn error_lines(findings: Vec<Finding>) -> Vec<String> {
+    findings
         .into_iter()
         .filter(|f| f.severity == Severity::Error)
         .map(|f| format!("{:?} {:?}: {}", f.code, f.oz, f.message))
         .collect()
+}
+
+fn errors(doc: &Document) -> Vec<String> {
+    error_lines(validate(doc))
+}
+
+#[test]
+fn official_x84s_validated_with_their_x83s_have_no_errors() {
+    let found: Vec<(&str, Vec<String>)> = [
+        (
+            "3.1/Musterdatei_3.1_2008-001.X84",
+            "3.1/Musterdatei_3.1_2008-001.X83",
+        ),
+        ("3.3/bvbs_bauausfuehrung.x84", "3.3/bvbs_bauausfuehrung.x83"),
+    ]
+    .into_iter()
+    .map(|(bid, tender)| {
+        let findings = validate_with_tender(&fixture(bid), &fixture(tender));
+        (bid, error_lines(findings))
+    })
+    .filter(|(_, errors)| !errors.is_empty())
+    .collect();
+    assert!(found.is_empty(), "{found:#?}");
 }
 
 #[test]

@@ -20,7 +20,7 @@ use gaebboss_core::boq::{ItemKind, ItemRef};
 use gaebboss_core::decimal::Decimal;
 use gaebboss_core::json::{kind_name, to_json};
 use gaebboss_core::oz::Breakdown;
-use gaebboss_core::validate::{Finding, validate, validate_against_tender};
+use gaebboss_core::validate::{Finding, validate, validate_against_tender, validate_with_tender};
 use gaebboss_core::version::{Phase, Version};
 use gaebboss_core::write::WriteOptions;
 
@@ -565,9 +565,23 @@ impl PyDocument {
             .map_err(gaeb_err)
     }
 
-    fn validate(&self, py: Python<'_>) -> Vec<PyFinding> {
+    /// Every rule the document can be checked against; with the tender a
+    /// bid answers, its totals follow the tender's alternative and
+    /// not-applicable items and categories, and it is checked against the
+    /// tender as well.
+    #[pyo3(signature = (tender=None))]
+    fn validate(&self, py: Python<'_>, tender: Option<&PyDocument>) -> Vec<PyFinding> {
         let doc = Arc::clone(&self.inner);
-        py.detach(move || validate(&doc).into_iter().map(finding).collect())
+        let Some(tender) = tender else {
+            return py.detach(move || validate(&doc).into_iter().map(finding).collect());
+        };
+        let tender = Arc::clone(&tender.inner);
+        py.detach(move || {
+            validate_with_tender(&doc, &tender)
+                .into_iter()
+                .map(finding)
+                .collect()
+        })
     }
 
     fn validate_against(&self, py: Python<'_>, tender: &PyDocument) -> Vec<PyFinding> {
