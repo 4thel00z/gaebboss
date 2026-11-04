@@ -14,7 +14,10 @@ it and use the navigation layer instead:
   prices and texts, plus the categories above it in `path`.
 - `doc.categories()` yields the LV-Bereiche with label, depth and declared
   totals.
-- `doc.markup_items()` yields Zuschlagspositionen.
+- `doc.markup_items()` yields Zuschlagspositionen with their base, percent,
+  total and texts.
+- `doc.entries()` yields categories, items and markup items together in
+  document order, each category before what it contains.
 - `doc.computed_totals()` sums items per Fachdokumentation 4.6.17 and puts
   the result next to what the file declares. A category passes its lump sum
   (`TotalLSUM`) or its sum less its discount up to its parent; an

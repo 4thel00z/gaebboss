@@ -7,9 +7,11 @@ pip install gaebboss
 `gaebboss.Document(path)` or `gaebboss.Document(data=bytes, name="x.X83")`
 parses with the GIL released; `data` takes `bytes`, `bytearray`, `memoryview`
 or any other buffer and copies it once. Everything it returns is a plain object:
-`items()`, `categories()`, `markup_items()`, `boq`, `project`, `warnings`,
-`validate(tender=None)`, `validate_against(tender)`, `to_json()`, `write(...)` and
-`write_report(...)`. Every GAEB number is a `decimal.Decimal` built from its
+`items()`, `categories()`, `markup_items()`, `entries()`, `boq`, `project`,
+`warnings`, `validate(tender=None)`, `validate_against(tender)`, `to_json()`,
+`write(...)` and `write_report(...)`. `entries()` returns categories, items and
+markup items in document order, each category before what it contains, so a
+reader can rebuild the tree in one pass. Every GAEB number is a `decimal.Decimal` built from its
 exact text; passing a float to a bid raises `GaebError`.
 
 ```python

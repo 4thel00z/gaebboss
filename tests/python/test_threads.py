@@ -64,6 +64,7 @@ def calls(big_x83: pathlib.Path) -> dict[str, Callable[[], object]]:
     return {
         "open": lambda: gaebboss.Document(big_x83),
         "items": tender.items,
+        "entries": tender.entries,
         "validate": tender.validate,
         "validate_against": lambda: x84.validate_against(tender),
         "write_report": tender.write_report,
@@ -72,7 +73,8 @@ def calls(big_x83: pathlib.Path) -> dict[str, Callable[[], object]]:
 
 
 @pytest.mark.parametrize(
-    "name", ["open", "items", "validate", "validate_against", "write_report", "from_tender"]
+    "name",
+    ["open", "items", "entries", "validate", "validate_against", "write_report", "from_tender"],
 )
 def test_calls_release_the_gil(big_x83: pathlib.Path, name: str) -> None:
     call = calls(big_x83)[name]
