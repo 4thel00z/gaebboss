@@ -5,13 +5,19 @@ The authoritative signatures are the stubs shipped with the package,
 
 - `Document(path=None, *, data=None, name=None)`; properties `version`,
   `phase`, `warnings`, `project`, `boq`; methods `items(kind="all")`,
-  `categories()`, `markup_items()`, `to_json()`, `validate(tender=None)`,
-  `validate_against(tender)`, `write(*, phase, version, pretty, strict)`,
+  `categories()`, `markup_items()`, `entries()`, `to_json()`,
+  `validate(tender=None)`, `validate_against(tender)`,
+  `write(*, phase, version, pretty, strict)`,
   `write_report(*, phase, version, strict)`.
+- `entries()` returns `Category`, `Item` and `MarkupItem` objects in document
+  order, each category before what it contains.
 - `Item`: `id`, `oz`, `kind`, `alternative_group`, `alternative_serial`,
   `short_text`, `long_text`, `long_text_markdown`, `quantity`, `unit`,
   `unit_price`, `total`, `vat`, `counts_towards_total`, `not_offered`,
   `category_ozs`, `complements`.
+- `Category`: `oz`, `label`, `depth`, `total`.
+- `MarkupItem`: `id`, `oz`, `short_text`, `long_text`, `long_text_markdown`,
+  `base`, `percent`, `total`, `category_ozs`.
 - `Bid.from_tender(document, bidder)`; `price`, `price_components`,
   `not_offered`, `free_quantity`, `fill_complement`, `markup`,
   `discount_percent`, `vat_percent`, `finish()`.

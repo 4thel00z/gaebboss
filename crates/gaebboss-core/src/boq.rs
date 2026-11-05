@@ -6,7 +6,7 @@ use std::collections::HashSet;
 
 use crate::Document;
 use crate::decimal::{Decimal, item_total, total_after_discount};
-use crate::model::{BoQ, BoQBody, BoQCtgy, Item, MarkupItem, Provis, Totals};
+use crate::model::{BoQ, BoQBody, BoQCtgy, Description, Item, MarkupItem, Provis, Totals};
 use crate::oz::{Breakdown, Oz};
 use crate::tape::NodeId;
 use crate::text::{Complement, complements, markdown, plain};
@@ -129,23 +129,23 @@ impl ItemRef<'_> {
     }
 
     pub fn short_text(&self) -> String {
-        short_text(self.doc, self.item)
+        short_text(self.doc, self.item.description.as_ref())
     }
 
     pub fn long_text(&self) -> String {
-        detail_node(self.item)
+        detail_node(self.item.description.as_ref())
             .map(|n| plain(self.doc, n))
             .unwrap_or_default()
     }
 
     pub fn long_text_markdown(&self) -> String {
-        detail_node(self.item)
+        detail_node(self.item.description.as_ref())
             .map(|n| markdown(self.doc, n))
             .unwrap_or_default()
     }
 
     pub fn complements(&self) -> Vec<Complement> {
-        detail_node(self.item)
+        detail_node(self.item.description.as_ref())
             .map(|n| complements(self.doc, n))
             .unwrap_or_default()
     }
@@ -189,10 +189,9 @@ fn carried_total(totals: Option<&Totals>, sum: Decimal) -> Option<Decimal> {
     Some(sum)
 }
 
-fn detail_node(item: &Item) -> Option<crate::tape::NodeId> {
+fn detail_node(description: Option<&Description>) -> Option<crate::tape::NodeId> {
     Some(
-        item.description
-            .as_ref()?
+        description?
             .complete_text
             .as_ref()?
             .detail_txt
@@ -201,8 +200,8 @@ fn detail_node(item: &Item) -> Option<crate::tape::NodeId> {
     )
 }
 
-fn short_text(doc: &Document, item: &Item) -> String {
-    let Some(description) = item.description.as_ref() else {
+fn short_text(doc: &Document, description: Option<&Description>) -> String {
+    let Some(description) = description else {
         return String::new();
     };
     let outline = description
@@ -245,6 +244,22 @@ impl MarkupRef<'_> {
 
     pub fn base(&self) -> Option<Decimal> {
         self.item.it_markup
+    }
+
+    pub fn short_text(&self) -> String {
+        short_text(self.doc, self.item.description.as_ref())
+    }
+
+    pub fn long_text(&self) -> String {
+        detail_node(self.item.description.as_ref())
+            .map(|n| plain(self.doc, n))
+            .unwrap_or_default()
+    }
+
+    pub fn long_text_markdown(&self) -> String {
+        detail_node(self.item.description.as_ref())
+            .map(|n| markdown(self.doc, n))
+            .unwrap_or_default()
     }
 }
 
@@ -848,6 +863,22 @@ mod tests {
         assert_eq!(markups[0].oz.dotted(), "002.001.0030");
         assert_eq!(markups[0].total(), Some(d("85000.00")));
         assert_eq!(markups[0].percent(), Some(d("10.00")));
+    }
+
+    #[test]
+    fn markup_items_carry_their_texts() {
+        let doc = tender(&format!(
+            "{}<MarkupItem ID=\"m\" RNoPart=\"20\"><Markup>5.00</Markup><Description><CompleteText><DetailTxt><Text><p><span>Zuschlag auf Pos. 10</span></p></Text></DetailTxt><OutlineText><OutlTxt><TextOutlTxt><p><span>Wagnis</span></p></TextOutlTxt></OutlTxt></OutlineText></CompleteText></Description></MarkupItem>",
+            item("a", "10", "")
+        ));
+        let markups: Vec<MarkupRef<'_>> = doc.markup_items().collect();
+        assert_eq!(markups[0].short_text(), "Wagnis");
+        assert_eq!(markups[0].long_text(), "Zuschlag auf Pos. 10");
+        assert!(
+            markups[0]
+                .long_text_markdown()
+                .contains("Zuschlag auf Pos. 10")
+        );
     }
 
     #[test]

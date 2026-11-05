@@ -16,9 +16,10 @@ use pyo3::types::{PyDict, PyFloat};
 
 use gaebboss_core::Document;
 use gaebboss_core::bid::{Bid, Bidder};
-use gaebboss_core::boq::{ItemKind, ItemRef};
+use gaebboss_core::boq::{CategoryRef, Entry, ItemKind, ItemRef, MarkupRef};
 use gaebboss_core::decimal::Decimal;
 use gaebboss_core::json::{kind_name, to_json};
+use gaebboss_core::model::BoQCtgy;
 use gaebboss_core::oz::Breakdown;
 use gaebboss_core::validate::{Finding, validate, validate_against_tender, validate_with_tender};
 use gaebboss_core::version::{Phase, Version};
@@ -150,6 +151,17 @@ impl PyComplement {
     }
 }
 
+/// The dotted Ordnungszahl of every category on `path`, outermost first.
+fn category_ozs(doc: &Document, breakdown: &Breakdown, path: &[&BoQCtgy]) -> Vec<String> {
+    let parts: Vec<&str> = path
+        .iter()
+        .map(|c| c.rno_part.map(|s| doc.str(s)).unwrap_or(""))
+        .collect();
+    (1..=parts.len())
+        .map(|depth| breakdown.category_oz(&parts[..depth]).dotted())
+        .collect()
+}
+
 #[pyclass(frozen, name = "Item", module = "gaebboss")]
 struct PyItem {
     #[pyo3(get)]
@@ -204,14 +216,6 @@ impl PyItem {
                 number: c.number,
             })
             .collect();
-        let parts: Vec<&str> = i
-            .path
-            .iter()
-            .map(|c| c.rno_part.map(|s| doc.str(s)).unwrap_or(""))
-            .collect();
-        let category_ozs = (1..=parts.len())
-            .map(|depth| breakdown.category_oz(&parts[..depth]).dotted())
-            .collect();
         PyItem {
             id: i.id().to_string(),
             oz: i.oz.dotted(),
@@ -228,7 +232,7 @@ impl PyItem {
             vat: i.vat_percent(),
             counts_towards_total: i.counts_towards_total(),
             not_offered: i.not_offered(),
-            category_ozs,
+            category_ozs: category_ozs(doc, breakdown, &i.path),
             complements,
         }
     }
@@ -274,8 +278,26 @@ struct PyCategory {
     label: String,
     #[pyo3(get)]
     depth: usize,
-    #[pyo3(get)]
-    total: Option<Py<PyAny>>,
+    total: Option<Decimal>,
+}
+
+impl PyCategory {
+    fn new(c: CategoryRef<'_>) -> PyCategory {
+        PyCategory {
+            oz: c.oz.dotted(),
+            total: c.ctgy.totals.as_ref().and_then(|t| t.total),
+            label: c.label,
+            depth: c.depth,
+        }
+    }
+}
+
+#[pymethods]
+impl PyCategory {
+    #[getter]
+    fn total(&self, py: Python<'_>) -> PyResult<Option<Py<PyAny>>> {
+        decimal(py, self.total)
+    }
 }
 
 #[pyclass(frozen, name = "MarkupItem", module = "gaebboss")]
@@ -285,11 +307,58 @@ struct PyMarkupItem {
     #[pyo3(get)]
     oz: String,
     #[pyo3(get)]
-    base: Option<Py<PyAny>>,
+    short_text: String,
     #[pyo3(get)]
-    percent: Option<Py<PyAny>>,
+    long_text: String,
     #[pyo3(get)]
-    total: Option<Py<PyAny>>,
+    long_text_markdown: String,
+    base: Option<Decimal>,
+    percent: Option<Decimal>,
+    total: Option<Decimal>,
+    #[pyo3(get)]
+    category_ozs: Vec<String>,
+}
+
+impl PyMarkupItem {
+    fn new(doc: &Document, breakdown: &Breakdown, m: &MarkupRef<'_>) -> PyMarkupItem {
+        PyMarkupItem {
+            id: m.id().to_string(),
+            oz: m.oz.dotted(),
+            short_text: m.short_text(),
+            long_text: m.long_text(),
+            long_text_markdown: m.long_text_markdown(),
+            base: m.base(),
+            percent: m.percent(),
+            total: m.total(),
+            category_ozs: category_ozs(doc, breakdown, &m.path),
+        }
+    }
+}
+
+#[pymethods]
+impl PyMarkupItem {
+    #[getter]
+    fn base(&self, py: Python<'_>) -> PyResult<Option<Py<PyAny>>> {
+        decimal(py, self.base)
+    }
+
+    #[getter]
+    fn percent(&self, py: Python<'_>) -> PyResult<Option<Py<PyAny>>> {
+        decimal(py, self.percent)
+    }
+
+    #[getter]
+    fn total(&self, py: Python<'_>) -> PyResult<Option<Py<PyAny>>> {
+        decimal(py, self.total)
+    }
+}
+
+/// One node of the bill as its Python class.
+#[derive(IntoPyObject)]
+enum PyEntry {
+    Category(PyCategory),
+    Item(PyItem),
+    Markup(PyMarkupItem),
 }
 
 #[pyclass(frozen, name = "Finding", module = "gaebboss")]
@@ -529,33 +598,35 @@ impl PyDocument {
         }))
     }
 
-    fn categories(&self, py: Python<'_>) -> PyResult<Vec<PyCategory>> {
-        self.inner
-            .categories()
-            .map(|c| {
-                Ok(PyCategory {
-                    oz: c.oz.dotted(),
-                    label: c.label,
-                    depth: c.depth,
-                    total: decimal(py, c.ctgy.totals.as_ref().and_then(|t| t.total))?,
+    /// Categories, items and markup items in document order, each category
+    /// before what it contains.
+    fn entries(&self, py: Python<'_>) -> Vec<PyEntry> {
+        let doc = Arc::clone(&self.inner);
+        py.detach(move || {
+            let breakdown = doc.breakdown();
+            doc.entries()
+                .map(|entry| match entry {
+                    Entry::Category(c) => PyEntry::Category(PyCategory::new(c)),
+                    Entry::Item(i) => PyEntry::Item(PyItem::new(&doc, &breakdown, &i)),
+                    Entry::Markup(m) => PyEntry::Markup(PyMarkupItem::new(&doc, &breakdown, &m)),
                 })
-            })
-            .collect()
+                .collect()
+        })
     }
 
-    fn markup_items(&self, py: Python<'_>) -> PyResult<Vec<PyMarkupItem>> {
-        self.inner
-            .markup_items()
-            .map(|m| {
-                Ok(PyMarkupItem {
-                    id: m.id().to_string(),
-                    oz: m.oz.dotted(),
-                    base: decimal(py, m.base())?,
-                    percent: decimal(py, m.percent())?,
-                    total: decimal(py, m.total())?,
-                })
-            })
-            .collect()
+    fn categories(&self, py: Python<'_>) -> Vec<PyCategory> {
+        let doc = Arc::clone(&self.inner);
+        py.detach(move || doc.categories().map(PyCategory::new).collect())
+    }
+
+    fn markup_items(&self, py: Python<'_>) -> Vec<PyMarkupItem> {
+        let doc = Arc::clone(&self.inner);
+        py.detach(move || {
+            let breakdown = doc.breakdown();
+            doc.markup_items()
+                .map(|m| PyMarkupItem::new(&doc, &breakdown, &m))
+                .collect()
+        })
     }
 
     /// The document as a JSON string; decimals are strings.
