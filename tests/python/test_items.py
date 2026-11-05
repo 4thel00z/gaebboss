@@ -108,3 +108,50 @@ def test_old_version_file(musterdatei_x83) -> None:
     assert doc.version == "3.1"
     assert doc.phase == "X83"
     assert len(doc.items()) > 50
+
+
+def test_entries_place_remarks_where_they_stand(x83) -> None:
+    doc = gaebboss.Document(x83)
+    entries = doc.entries()
+    remarks = [entry for entry in entries if isinstance(entry, gaebboss.Remark)]
+    assert len(remarks) == 4
+    assert isinstance(entries[0], gaebboss.Remark)
+    assert entries[0].id == "ID0F6780C0"
+    assert entries[0].category_ozs == []
+    assert all(remark.long_text or remark.short_text for remark in remarks)
+    assert not any(hasattr(remark, "oz") for remark in remarks)
+
+
+def test_remark_texts() -> None:
+    remark = (
+        '<Remark ID="r"><Description><CompleteText><DetailTxt><Text><p><span>Gilt für Bauteil B.</span></p>'
+        "</Text></DetailTxt><OutlineText><OutlTxt><TextOutlTxt><p><span>Hinweis</span></p></TextOutlTxt>"
+        "</OutlTxt></OutlineText></CompleteText></Description></Remark>"
+    )
+    bill = BILL.replace('<Item ID="i"', remark + '<Item ID="i"', 1)
+    entries = gaebboss.Document(data=bill.encode(), name="bill.X83").entries()
+    assert [type(entry).__name__ for entry in entries] == ["Category", "Remark", "Item", "MarkupItem", "Category"]
+    found = entries[1]
+    assert found.id == "r"
+    assert found.short_text == "Hinweis"
+    assert found.long_text == "Gilt für Bauteil B."
+    assert found.long_text_markdown == "Gilt für Bauteil B."
+    assert found.category_ozs == ["01"]
+
+
+def test_add_texts(musterdatei_x83) -> None:
+    doc = gaebboss.Document(musterdatei_x83)
+    award = doc.award_add_texts()
+    assert len(award) == 8
+    assert award[0].short_text == "Vertragliche Regelungen oder Ähnliches"
+    assert "Vorbemerkung" in award[0].long_text
+    closing = doc.gaeb_add_texts()
+    assert len(closing) == 1
+    assert "Mit Abgabe des Angebotes" in closing[0].long_text
+    assert all("/9j/" not in text.long_text_markdown for text in award + closing)
+
+
+def test_bid_without_add_texts(x84) -> None:
+    doc = gaebboss.Document(x84)
+    assert doc.award_add_texts() == []
+    assert doc.gaeb_add_texts() == []

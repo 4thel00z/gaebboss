@@ -365,15 +365,14 @@ impl Outline {
         let mut rows = vec![bill_row(doc, &findings)];
         let mut by_node: HashMap<NodeId, usize> = HashMap::new();
         for entry in doc.entries() {
-            let parent_node = match &entry {
-                Entry::Category(c) => c.path.last().map(|p| p.node),
-                Entry::Item(i) => i.path.last().map(|p| p.node),
-                Entry::Markup(m) => m.path.last().map(|p| p.node),
-            };
-            let mut row = match &entry {
-                Entry::Category(c) => category_row(c, entry.id(doc).to_string(), &computed),
-                Entry::Item(i) => item_row(i),
-                Entry::Markup(m) => markup_row(m),
+            let (parent_node, mut row) = match &entry {
+                Entry::Category(c) => (
+                    c.path.last().map(|p| p.node),
+                    category_row(c, entry.id(doc).to_string(), &computed),
+                ),
+                Entry::Item(i) => (i.path.last().map(|p| p.node), item_row(i)),
+                Entry::Markup(m) => (m.path.last().map(|p| p.node), markup_row(m)),
+                Entry::Remark(_) => continue,
             };
             row.parent = Some(
                 parent_node
