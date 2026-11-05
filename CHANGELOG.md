@@ -1,5 +1,16 @@
 # Changelog
 
+## [0.4.0](https://github.com/4thel00z/gaebboss/compare/v0.3.0...v0.4.0) (2026-11-05)
+
+
+### ⚠ BREAKING CHANGES
+
+* **core:** Entry has a Remark variant, and Entry::oz() returns Option<&Oz> because a remark has no Ordnungszahl. Python code that dispatches on the type of what entries() returns needs a case for Remark.
+
+### Features
+
+* **core:** read remarks and additional texts ([#13](https://github.com/4thel00z/gaebboss/issues/13)) ([316875b](https://github.com/4thel00z/gaebboss/commit/316875b923680c5f315d550baf0f89728cb4b69d))
+
 ## [0.3.0](https://github.com/4thel00z/gaebboss/compare/v0.2.1...v0.3.0) (2026-11-05)
 
 
