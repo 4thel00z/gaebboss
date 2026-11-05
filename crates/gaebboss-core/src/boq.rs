@@ -6,7 +6,9 @@ use std::collections::HashSet;
 
 use crate::Document;
 use crate::decimal::{Decimal, item_total, total_after_discount};
-use crate::model::{BoQ, BoQBody, BoQCtgy, Description, Item, MarkupItem, Provis, Totals};
+use crate::model::{
+    AddText, BoQ, BoQBody, BoQCtgy, Description, Item, MarkupItem, Provis, Remark, Totals,
+};
 use crate::oz::{Breakdown, Oz};
 use crate::tape::NodeId;
 use crate::text::{Complement, complements, markdown, plain};
@@ -263,6 +265,71 @@ impl MarkupRef<'_> {
     }
 }
 
+/// A remark (Hinweistext) between categories or items, with the categories
+/// above it.
+pub struct RemarkRef<'a> {
+    pub doc: &'a Document,
+    pub remark: &'a Remark,
+    pub path: Vec<&'a BoQCtgy>,
+}
+
+impl RemarkRef<'_> {
+    pub fn id(&self) -> &str {
+        self.remark.id.map(|s| self.doc.str(s)).unwrap_or("")
+    }
+
+    pub fn short_text(&self) -> String {
+        short_text(self.doc, self.remark.description.as_ref())
+    }
+
+    pub fn long_text(&self) -> String {
+        detail_node(self.remark.description.as_ref())
+            .map(|n| plain(self.doc, n))
+            .unwrap_or_default()
+    }
+
+    pub fn long_text_markdown(&self) -> String {
+        detail_node(self.remark.description.as_ref())
+            .map(|n| markdown(self.doc, n))
+            .unwrap_or_default()
+    }
+}
+
+/// An additional text (`AddText`) outside the bill, such as the preliminary
+/// notes of a tender.
+pub struct AddTextRef<'a> {
+    pub doc: &'a Document,
+    pub add_text: &'a AddText,
+}
+
+impl AddTextRef<'_> {
+    /// The heading (`OutlineAddText`).
+    pub fn short_text(&self) -> String {
+        self.add_text
+            .outline_add_text
+            .as_ref()
+            .map(|t| plain(self.doc, t.node))
+            .unwrap_or_default()
+    }
+
+    /// The text (`DetailAddText`).
+    pub fn long_text(&self) -> String {
+        self.add_text
+            .detail_add_text
+            .as_ref()
+            .map(|t| plain(self.doc, t.node))
+            .unwrap_or_default()
+    }
+
+    pub fn long_text_markdown(&self) -> String {
+        self.add_text
+            .detail_add_text
+            .as_ref()
+            .map(|t| markdown(self.doc, t.node))
+            .unwrap_or_default()
+    }
+}
+
 #[derive(Clone, Debug, PartialEq, Eq)]
 pub struct CategoryTotal {
     pub oz: String,
@@ -470,11 +537,12 @@ impl Oz {
     }
 }
 
-/// One node of the bill: a category, an item or a markup item.
+/// One node of the bill: a category, an item, a markup item or a remark.
 pub enum Entry<'a> {
     Category(CategoryRef<'a>),
     Item(ItemRef<'a>),
     Markup(MarkupRef<'a>),
+    Remark(RemarkRef<'a>),
 }
 
 impl Entry<'_> {
@@ -484,14 +552,17 @@ impl Entry<'_> {
             Entry::Category(c) => c.ctgy.node,
             Entry::Item(i) => i.item.node,
             Entry::Markup(m) => m.item.node,
+            Entry::Remark(r) => r.remark.node,
         }
     }
 
-    pub fn oz(&self) -> &Oz {
+    /// The Ordnungszahl; a remark has none.
+    pub fn oz(&self) -> Option<&Oz> {
         match self {
-            Entry::Category(c) => &c.oz,
-            Entry::Item(i) => &i.oz,
-            Entry::Markup(m) => &m.oz,
+            Entry::Category(c) => Some(&c.oz),
+            Entry::Item(i) => Some(&i.oz),
+            Entry::Markup(m) => Some(&m.oz),
+            Entry::Remark(_) => None,
         }
     }
 
@@ -501,6 +572,7 @@ impl Entry<'_> {
             Entry::Category(c) => c.ctgy.id,
             Entry::Item(i) => i.item.id,
             Entry::Markup(m) => m.item.id,
+            Entry::Remark(r) => r.remark.id,
         };
         span.map(|s| doc.str(s)).unwrap_or("")
     }
@@ -511,13 +583,14 @@ impl Entry<'_> {
             Entry::Category(c) => c.depth,
             Entry::Item(i) => i.path.len(),
             Entry::Markup(m) => m.path.len(),
+            Entry::Remark(r) => r.path.len(),
         }
     }
 }
 
 impl Document {
-    /// Categories, items and markup items in document order, each category
-    /// before what it contains.
+    /// Categories, items, markup items and remarks in document order, each
+    /// category before what it contains.
     pub fn entries(&self) -> impl Iterator<Item = Entry<'_>> {
         let mut out = Vec::new();
         let breakdown = self.breakdown();
@@ -533,6 +606,27 @@ impl Document {
         }
         out.into_iter()
     }
+
+    /// The award's additional texts (`Award/AddText`), which come before the
+    /// bill. A tender keeps its preliminary notes here.
+    pub fn award_add_texts(&self) -> impl Iterator<Item = AddTextRef<'_>> {
+        self.gaeb
+            .award
+            .iter()
+            .flat_map(|award| &award.add_text)
+            .map(|add_text| AddTextRef {
+                doc: self,
+                add_text,
+            })
+    }
+
+    /// The file's additional texts (`GAEB/AddText`), which come after the award.
+    pub fn gaeb_add_texts(&self) -> impl Iterator<Item = AddTextRef<'_>> {
+        self.gaeb.add_text.iter().map(|add_text| AddTextRef {
+            doc: self,
+            add_text,
+        })
+    }
 }
 
 fn walk<'a>(
@@ -543,7 +637,15 @@ fn walk<'a>(
     parts: &mut Vec<String>,
     visit: &mut dyn FnMut(Entry<'a>),
 ) {
+    let mut remarks = body.remark.iter().peekable();
     for ctgy in &body.boq_ctgy {
+        while let Some(remark) = remarks.next_if(|r| r.node < ctgy.node) {
+            visit(Entry::Remark(RemarkRef {
+                doc,
+                remark,
+                path: path.clone(),
+            }));
+        }
         parts.push(
             ctgy.rno_part
                 .map(|s| doc.str(s).to_string())
@@ -570,40 +672,45 @@ fn walk<'a>(
         path.pop();
         parts.pop();
     }
+    for remark in remarks {
+        visit(Entry::Remark(RemarkRef {
+            doc,
+            remark,
+            path: path.clone(),
+        }));
+    }
     let Some(list) = &body.itemlist else { return };
     let part_refs: Vec<&str> = parts.iter().map(String::as_str).collect();
-    let mut items = list.item.iter().peekable();
-    let mut markups = list.markup_item.iter().peekable();
-    loop {
-        let item_first = match (items.peek(), markups.peek()) {
-            (None, None) => return,
-            (Some(item), Some(markup)) => item.node < markup.node,
-            (Some(_), None) => true,
-            (None, Some(_)) => false,
-        };
-        if let Some(item) = items.next_if(|_| item_first) {
-            let rno = item.rno_part.map(|s| doc.str(s)).unwrap_or("");
-            let index = item.rno_index.map(|s| doc.str(s));
-            visit(Entry::Item(ItemRef {
-                doc,
-                item,
-                oz: breakdown.oz(&part_refs, rno, index),
-                path: path.clone(),
-            }));
-            continue;
-        }
-        let Some(markup) = markups.next() else {
-            return;
-        };
+    let remarks = list.remark.iter().map(|remark| {
+        Entry::Remark(RemarkRef {
+            doc,
+            remark,
+            path: path.clone(),
+        })
+    });
+    let items = list.item.iter().map(|item| {
+        let rno = item.rno_part.map(|s| doc.str(s)).unwrap_or("");
+        let index = item.rno_index.map(|s| doc.str(s));
+        Entry::Item(ItemRef {
+            doc,
+            item,
+            oz: breakdown.oz(&part_refs, rno, index),
+            path: path.clone(),
+        })
+    });
+    let markups = list.markup_item.iter().map(|markup| {
         let rno = markup.rno_part.map(|s| doc.str(s)).unwrap_or("");
         let index = markup.rno_index.map(|s| doc.str(s));
-        visit(Entry::Markup(MarkupRef {
+        Entry::Markup(MarkupRef {
             doc,
             item: markup,
             oz: breakdown.oz(&part_refs, rno, index),
             path: path.clone(),
-        }));
-    }
+        })
+    });
+    let mut entries: Vec<Entry<'a>> = remarks.chain(items).chain(markups).collect();
+    entries.sort_by_key(Entry::node);
+    entries.into_iter().for_each(visit);
 }
 
 #[cfg(test)]
@@ -842,6 +949,7 @@ mod tests {
                 Entry::Category(c) => format!("c{}", c.oz.dotted()),
                 Entry::Item(i) => format!("i{}", i.id()),
                 Entry::Markup(m) => format!("m{}", m.id()),
+                Entry::Remark(r) => format!("r{}", r.id()),
             })
             .collect();
         assert_eq!(order, ["c01", "ia", "mm", "ib"]);
@@ -903,5 +1011,142 @@ mod tests {
             items.len()
         );
         assert!(items.iter().all(|i| !i.oz.dotted().is_empty()));
+    }
+
+    fn official(path: &str) -> Document {
+        let path = format!(
+            "{}/../../tests/fixtures/official/{path}",
+            env!("CARGO_MANIFEST_DIR")
+        );
+        Document::open(std::path::Path::new(&path)).unwrap()
+    }
+
+    fn remark(id: &str, outline: &str, detail: &str) -> String {
+        format!(
+            "<Remark ID=\"{id}\"><Description><CompleteText><DetailTxt><Text><p><span>{detail}</span></p></Text></DetailTxt><OutlineText><OutlTxt><TextOutlTxt><p><span>{outline}</span></p></TextOutlTxt></OutlTxt></OutlineText></CompleteText></Description></Remark>"
+        )
+    }
+
+    #[test]
+    fn entries_keep_a_remark_between_the_items_around_it() {
+        let doc = tender(&format!(
+            "{}{}<MarkupItem ID=\"m\" RNoPart=\"15\"><Markup>10.00</Markup></MarkupItem>{}",
+            item("a", "10", ""),
+            remark(
+                "r",
+                "Hinweis",
+                "Die folgenden Positionen gelten für Bauteil B."
+            ),
+            item("b", "20", "")
+        ));
+        let order: Vec<String> = doc
+            .entries()
+            .map(|e| match e {
+                Entry::Category(c) => format!("c{}", c.oz.dotted()),
+                Entry::Item(i) => format!("i{}", i.id()),
+                Entry::Markup(m) => format!("m{}", m.id()),
+                Entry::Remark(r) => format!("r{}", r.id()),
+            })
+            .collect();
+        assert_eq!(order, ["c01", "ia", "rr", "mm", "ib"]);
+        let remarks: Vec<RemarkRef<'_>> = doc
+            .entries()
+            .filter_map(|e| match e {
+                Entry::Remark(r) => Some(r),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(remarks[0].short_text(), "Hinweis");
+        assert_eq!(
+            remarks[0].long_text(),
+            "Die folgenden Positionen gelten für Bauteil B."
+        );
+        assert_eq!(remarks[0].path.len(), 1);
+        assert_eq!(doc.items().count(), 2);
+    }
+
+    #[test]
+    fn entries_put_remarks_before_and_between_categories() {
+        let doc = official("3.1/Musterdatei_3.1_2008-001.X83");
+        let entries: Vec<Entry<'_>> = doc.entries().collect();
+        assert!(entries.windows(2).all(|w| w[0].node() < w[1].node()));
+        let remarks: Vec<&RemarkRef<'_>> = entries
+            .iter()
+            .filter_map(|e| match e {
+                Entry::Remark(r) => Some(r),
+                _ => None,
+            })
+            .collect();
+        assert_eq!(remarks.len(), 14);
+        let order: Vec<String> = entries[..9]
+            .iter()
+            .map(|e| match e {
+                Entry::Category(c) => format!("c{}", c.oz.dotted()),
+                Entry::Item(i) => format!("i{}", i.id()),
+                Entry::Markup(m) => format!("m{}", m.id()),
+                Entry::Remark(r) => format!("r{} {}", r.id(), r.path.len()),
+            })
+            .collect();
+        assert_eq!(
+            order,
+            [
+                "rDAPNBDAA 0",
+                "c1",
+                "rDBDGJNLA 1",
+                "c1.10",
+                "rDBDGGKGA 2",
+                "c1.10.10",
+                "rDBDGGGLA 3",
+                "rDBDGGCHI 3",
+                "iDBDGJIEA",
+            ]
+        );
+        assert_eq!(remarks[0].short_text(), "Hinweis Hauptgruppe 1");
+        assert!(remarks[0].long_text().starts_with("Dies ist ein Hinweis"));
+        assert!(
+            entries
+                .iter()
+                .all(|e| matches!(e, Entry::Remark(_)) == e.oz().is_none())
+        );
+        let bvbs = official("3.3/bvbs_bauausfuehrung.x83");
+        let Some(Entry::Remark(opening)) = bvbs.entries().next() else {
+            panic!("the bill opens with a remark");
+        };
+        assert_eq!(opening.id(), "ID0F6780C0");
+        assert!(opening.path.is_empty());
+        assert_eq!(
+            bvbs.entries()
+                .filter(|e| matches!(e, Entry::Remark(_)))
+                .count(),
+            4
+        );
+    }
+
+    #[test]
+    fn add_texts_come_from_the_award_and_the_file() {
+        let doc = official("3.1/Musterdatei_3.1_2008-001.X83");
+        let award: Vec<AddTextRef<'_>> = doc.award_add_texts().collect();
+        assert_eq!(award.len(), 8);
+        assert_eq!(
+            award[0].short_text(),
+            "Vertragliche Regelungen oder Ähnliches"
+        );
+        assert!(
+            award[0]
+                .long_text()
+                .contains("Hier folgen einige Textelemente als Vorbemerkung")
+        );
+        let closing: Vec<AddTextRef<'_>> = doc.gaeb_add_texts().collect();
+        assert_eq!(closing.len(), 1);
+        assert!(closing[0].long_text().contains("Mit Abgabe des Angebotes"));
+        let images = award.last().unwrap();
+        assert_eq!(images.short_text(), "Grafiken");
+        for text in [images.long_text(), images.long_text_markdown()] {
+            assert!(text.contains("Lagepläne"));
+            assert!(!text.contains("/9j/"), "{} bytes", text.len());
+        }
+        let bvbs = official("3.3/bvbs_bauausfuehrung.x84");
+        assert_eq!(bvbs.award_add_texts().count(), 0);
+        assert_eq!(bvbs.gaeb_add_texts().count(), 0);
     }
 }

@@ -16,7 +16,7 @@ use pyo3::types::{PyDict, PyFloat};
 
 use gaebboss_core::Document;
 use gaebboss_core::bid::{Bid, Bidder};
-use gaebboss_core::boq::{CategoryRef, Entry, ItemKind, ItemRef, MarkupRef};
+use gaebboss_core::boq::{AddTextRef, CategoryRef, Entry, ItemKind, ItemRef, MarkupRef, RemarkRef};
 use gaebboss_core::decimal::Decimal;
 use gaebboss_core::json::{kind_name, to_json};
 use gaebboss_core::model::BoQCtgy;
@@ -353,12 +353,59 @@ impl PyMarkupItem {
     }
 }
 
+#[pyclass(frozen, name = "Remark", module = "gaebboss")]
+struct PyRemark {
+    #[pyo3(get)]
+    id: String,
+    #[pyo3(get)]
+    short_text: String,
+    #[pyo3(get)]
+    long_text: String,
+    #[pyo3(get)]
+    long_text_markdown: String,
+    #[pyo3(get)]
+    category_ozs: Vec<String>,
+}
+
+impl PyRemark {
+    fn new(doc: &Document, breakdown: &Breakdown, r: &RemarkRef<'_>) -> PyRemark {
+        PyRemark {
+            id: r.id().to_string(),
+            short_text: r.short_text(),
+            long_text: r.long_text(),
+            long_text_markdown: r.long_text_markdown(),
+            category_ozs: category_ozs(doc, breakdown, &r.path),
+        }
+    }
+}
+
+#[pyclass(frozen, name = "AddText", module = "gaebboss")]
+struct PyAddText {
+    #[pyo3(get)]
+    short_text: String,
+    #[pyo3(get)]
+    long_text: String,
+    #[pyo3(get)]
+    long_text_markdown: String,
+}
+
+impl PyAddText {
+    fn new(t: &AddTextRef<'_>) -> PyAddText {
+        PyAddText {
+            short_text: t.short_text(),
+            long_text: t.long_text(),
+            long_text_markdown: t.long_text_markdown(),
+        }
+    }
+}
+
 /// One node of the bill as its Python class.
 #[derive(IntoPyObject)]
 enum PyEntry {
     Category(PyCategory),
     Item(PyItem),
     Markup(PyMarkupItem),
+    Remark(PyRemark),
 }
 
 #[pyclass(frozen, name = "Finding", module = "gaebboss")]
@@ -598,8 +645,8 @@ impl PyDocument {
         }))
     }
 
-    /// Categories, items and markup items in document order, each category
-    /// before what it contains.
+    /// Categories, items, markup items and remarks in document order, each
+    /// category before what it contains.
     fn entries(&self, py: Python<'_>) -> Vec<PyEntry> {
         let doc = Arc::clone(&self.inner);
         py.detach(move || {
@@ -609,9 +656,23 @@ impl PyDocument {
                     Entry::Category(c) => PyEntry::Category(PyCategory::new(c)),
                     Entry::Item(i) => PyEntry::Item(PyItem::new(&doc, &breakdown, &i)),
                     Entry::Markup(m) => PyEntry::Markup(PyMarkupItem::new(&doc, &breakdown, &m)),
+                    Entry::Remark(r) => PyEntry::Remark(PyRemark::new(&doc, &breakdown, &r)),
                 })
                 .collect()
         })
+    }
+
+    /// The award's additional texts, which come before the bill: in a tender,
+    /// its preliminary notes.
+    fn award_add_texts(&self, py: Python<'_>) -> Vec<PyAddText> {
+        let doc = Arc::clone(&self.inner);
+        py.detach(move || doc.award_add_texts().map(|t| PyAddText::new(&t)).collect())
+    }
+
+    /// The file's additional texts, which come after the award.
+    fn gaeb_add_texts(&self, py: Python<'_>) -> Vec<PyAddText> {
+        let doc = Arc::clone(&self.inner);
+        py.detach(move || doc.gaeb_add_texts().map(|t| PyAddText::new(&t)).collect())
     }
 
     fn categories(&self, py: Python<'_>) -> Vec<PyCategory> {
@@ -857,6 +918,8 @@ fn gaebboss(m: &Bound<'_, PyModule>) -> PyResult<()> {
     m.add_class::<PyItem>()?;
     m.add_class::<PyCategory>()?;
     m.add_class::<PyMarkupItem>()?;
+    m.add_class::<PyRemark>()?;
+    m.add_class::<PyAddText>()?;
     m.add_class::<PyComplement>()?;
     m.add_class::<PyBoq>()?;
     m.add_class::<PyLevel>()?;

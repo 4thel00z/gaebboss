@@ -244,6 +244,12 @@ fn md_prints_the_bill_with_category_headings() {
         .assert()
         .success()
         .stdout(predicate::str::starts_with("# BVBS GAEB Bauausf."))
+        .stdout(predicate::str::contains(
+            "Für die Zertifizierung von GAEB DA XML Schnittstellen",
+        ))
+        .stdout(predicate::str::contains(
+            "Hinweistext für die Prüfkriterien GAEB DA XML 3.3 - Bauausführung",
+        ))
         .stdout(predicate::str::contains("## 001 Bauhauptgewerke"))
         .stdout(predicate::str::contains(
             "#### 001.001.0010 Baustelleneinrichtung",

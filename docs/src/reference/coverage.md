@@ -7,7 +7,7 @@ texts, bids, validation, JSON) also interprets.
 
 | elements | read and written | interpreted by the semantic layer |
 |---|---|---|
-| 525 | 525 | 115 |
+| 525 | 525 | 119 |
 
 | element | in types | semantic | restricted in phases |
 |---|---|---|---|
@@ -23,7 +23,7 @@ texts, bids, validation, JSON) also interprets.
 | `AcctRecNo` | `tgOWN` |  | X86 X86ZE X86ZR X87 |
 | `AcctsPayNo` | `tgCTR` |  | X84 X86 X87 |
 | `AddItem` | `tgBoQItemRef` |  |  |
-| `AddText` | `tgArticle`, `tgAward`, `tgCTR`, `tgCnstSite`, `tgDateOfInformation`, `tgECInfo`, `tgGAEB`, `tgGAEB_Cost`, `tgInvoice`, `tgInvoiceInfo`, `tgNotifSite`, `tgOWN`, `tgOrderInfo`, `tgPrjInfo`, `tgProduct`, `tgRequester`, `tgSC_Evaluation`, `tgSC_GAEB` |  | X50.1 X50.2 X51.2 X52 X80 X81 X82 X83 X84 X85 X86 X87 X89 X89B X93 X94 X96 X97 X98 X99 |
+| `AddText` | `tgArticle`, `tgAward`, `tgCTR`, `tgCnstSite`, `tgDateOfInformation`, `tgECInfo`, `tgGAEB`, `tgGAEB_Cost`, `tgInvoice`, `tgInvoiceInfo`, `tgNotifSite`, `tgOWN`, `tgOrderInfo`, `tgPrjInfo`, `tgProduct`, `tgRequester`, `tgSC_Evaluation`, `tgSC_GAEB` | yes | X50.1 X50.2 X51.2 X52 X80 X81 X82 X83 X84 X85 X86 X87 X89 X89B X93 X94 X96 X97 X98 X99 |
 | `Address` | `tgCTR`, `tgCnstSite`, `tgConsortiumMember`, `tgCustomerInfo`, `tgDeliveryPlaceInfo`, `tgInvoiceCreator`, `tgInvoiceRecipient`, `tgNotifSite`, `tgOWN`, `tgOrderItem`, `tgPlannerInfo`, `tgProduct`, `tgRequester`, `tgSupplierInfo` | yes | X83Z X84 X84Z X86 X86ZE X86ZR X87 |
 | `Alignment` | `tgBoQBkdn`, `tgECBkdn` | yes |  |
 | `AlterBidPerm` | `tgPrjInfo` |  |  |
@@ -185,7 +185,7 @@ texts, bids, validation, JSON) also interprets.
 | `Descr` | `tgCategoryElement`, `tgCostElement`, `tgDimensionElement`, `tgECCtgy` | yes | X50.1 X50.2 X51.1 X51.2 |
 | `Descrip` | `Attachment`, `tgMastAgrInfo`, `tgPrjInfo` | yes | X83Z X85 X86ZR X89 X89B |
 | `Description` | `BuildingElement`, `CatalogDescription`, `tgConsortiumMember`, `tgCostElement`, `tgHourItem`, `tgInvoiceShare`, `tgItem`, `tgMarkupItem`, `tgMarkupItemCTR`, `tgMarkupItemOWN`, `tgMaterialItem`, `tgOrderItem`, `tgPerfDescr`, `tgRemark`, `tgSubDescr`, `tgTopologyElement` | yes | X50.1 X50.2 X51.1 X51.2 X52 X80 X81 X82 X83 X83Z X84 X85 X86 X86ZE X86ZR X87 X89 X89B |
-| `DetailAddText` | `tgAddText` |  |  |
+| `DetailAddText` | `tgAddText` | yes |  |
 | `DetailTxt` | `tgCompleteText` | yes | X83Z X84 X86ZR |
 | `Dimension` | `tgOrderItem` |  |  |
 | `DimensionElement` | `tgECBody` |  |  |
@@ -332,7 +332,7 @@ texts, bids, validation, JSON) also interprets.
 | `OutlTSA` | `tgOutlineText` |  |  |
 | `OutlTextPart` | `tgSTLBBauID` |  |  |
 | `OutlTxt` | `tgOutlineText` |  |  |
-| `OutlineAddText` | `tgAddText` |  |  |
+| `OutlineAddText` | `tgAddText` | yes |  |
 | `OutlineText` | `tgCompleteText`, `tgDescription`, `tgPerfDescription` | yes | X52 X83 X83Z X85 X86 X86ZR X87 X89 X89B |
 | `PCode` | `tgAddress` |  |  |
 | `PartNo` | `tgOrderInfo` |  |  |
@@ -402,7 +402,7 @@ texts, bids, validation, JSON) also interprets.
 | `RefPrjName` | `tgPrjInfoQD` |  |  |
 | `RefRNo` | `tgItem`, `tgMarkupItem` |  | X52 X80 X81 X82 X83 X85 X86 X87 X89 X89B |
 | `RegNo` | `tgSupplierInfo` |  |  |
-| `Remark` | `tgBoQBody`, `tgCategoryElement`, `tgCostElement`, `tgDimensionElement`, `tgItemlist` |  | X50.1 X50.2 X51.1 X51.2 X80 X81 X82 X83 X83Z X84 X85 X86 X86ZR X87 X89 X89B |
+| `Remark` | `tgBoQBody`, `tgCategoryElement`, `tgCostElement`, `tgDimensionElement`, `tgItemlist` | yes | X50.1 X50.2 X51.1 X51.2 X80 X81 X82 X83 X83Z X84 X85 X86 X86ZR X87 X89 X89B |
 | `RepOrder` | `tgOrderInfo`, `tgOrderItem` |  |  |
 | `RequestIDNo` | `tgRequester` |  |  |
 | `RequestName` | `tgRequester` |  |  |

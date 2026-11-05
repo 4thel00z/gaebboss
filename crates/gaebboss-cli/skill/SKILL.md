@@ -92,7 +92,7 @@ use gaebboss_core::Document;
 use gaebboss_core::boq::Entry;
 
 let doc = Document::open(std::path::Path::new("tender.X83"))?;
-for entry in doc.entries() {                          // categories, items and markup items in document order
+for entry in doc.entries() {                          // categories, items, markup items and remarks in document order
     if let Entry::Item(item) = entry {
         println!("{} {:?} {}", item.oz, item.kind(), item.short_text());
     }

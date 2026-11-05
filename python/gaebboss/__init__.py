@@ -1,6 +1,7 @@
 """GAEB DA XML in pure Rust: read tenders and bids, validate, write, price."""
 
 from gaebboss._gaebboss import (
+    AddText,
     Bid,
     Boq,
     Category,
@@ -14,12 +15,14 @@ from gaebboss._gaebboss import (
     MarkupItem,
     Missing,
     Project,
+    Remark,
     Warning,
     WriteReport,
     __version__,
 )
 
 __all__ = [
+    "AddText",
     "Bid",
     "Boq",
     "Category",
@@ -33,6 +36,7 @@ __all__ = [
     "MarkupItem",
     "Missing",
     "Project",
+    "Remark",
     "Warning",
     "WriteReport",
     "__version__",

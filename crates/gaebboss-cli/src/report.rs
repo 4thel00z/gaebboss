@@ -128,7 +128,8 @@ pub fn text(doc: &Document, oz: Option<&str>) -> Result<String, String> {
 }
 
 /// The Markdown long text of one item, or the whole bill: categories as
-/// headings by depth, each item a heading with its long text below.
+/// headings by depth, each item a heading with its long text below, remarks
+/// in place, and the additional texts before and after the bill.
 pub fn markdown(doc: &Document, oz: Option<&str>) -> Result<String, String> {
     if let Some(oz) = oz {
         return Ok(find(doc, oz)?.long_text_markdown());
@@ -142,6 +143,9 @@ pub fn markdown(doc: &Document, oz: Option<&str>) -> Result<String, String> {
         .map(|s| doc.str(s).trim().to_string())
         .filter(|name| !name.is_empty())
         .map(|name| heading(0, name));
+    let before = doc
+        .award_add_texts()
+        .map(|t| note(t.short_text(), t.long_text_markdown()));
     let blocks = doc.entries().map(|entry| match entry {
         Entry::Category(c) => heading(c.depth + 1, format!("{} {}", c.oz.dotted(), c.label)),
         Entry::Item(item) => {
@@ -162,10 +166,26 @@ pub fn markdown(doc: &Document, oz: Option<&str>) -> Result<String, String> {
                 format!("{} Zuschlag{percent}", m.oz.dotted()),
             )
         }
+        Entry::Remark(r) => note(r.short_text(), r.long_text_markdown()),
     });
+    let after = doc
+        .gaeb_add_texts()
+        .map(|t| note(t.short_text(), t.long_text_markdown()));
     Ok(title
         .into_iter()
+        .chain(before)
         .chain(blocks)
+        .chain(after)
+        .filter(|block| !block.is_empty())
         .collect::<Vec<_>>()
         .join("\n\n"))
+}
+
+/// A text without an Ordnungszahl: its long text, or its short text when it
+/// has none.
+fn note(short: String, long: String) -> String {
+    match long.trim().is_empty() {
+        true => short.trim().to_string(),
+        false => long.trim_end().to_string(),
+    }
 }

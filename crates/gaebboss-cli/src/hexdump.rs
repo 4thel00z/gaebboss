@@ -7,6 +7,7 @@ use std::ops::Range;
 
 use gaebboss_core::Document;
 use gaebboss_core::boq::Entry;
+use gaebboss_core::oz::Oz;
 
 pub struct HexOpts {
     pub width: usize,
@@ -165,10 +166,14 @@ fn label(doc: &Document, entry: &Entry<'_>) -> String {
         Entry::Category(_) => "BoQCtgy",
         Entry::Item(_) => "Item",
         Entry::Markup(_) => "MarkupItem",
+        Entry::Remark(_) => "Remark",
     };
-    format!("{kind} {} {}", entry.oz().dotted(), entry.id(doc))
-        .trim_end()
-        .to_string()
+    let oz = entry.oz().map(Oz::dotted).unwrap_or_default();
+    [kind, oz.as_str(), entry.id(doc)]
+        .into_iter()
+        .filter(|part| !part.is_empty())
+        .collect::<Vec<_>>()
+        .join(" ")
 }
 
 /// The bytes a selector names, as a range of [`Document::bytes`].
@@ -183,8 +188,10 @@ pub fn resolve(doc: &Document, selector: &Selector) -> Result<Range<usize>, Stri
         Selector::Whole => 0..len,
         Selector::Range { start, end } => *start..*end,
         Selector::Oz(oz) => entry_range(
-            doc.entries()
-                .find(|e| e.oz().dotted() == *oz || e.oz().compact() == *oz),
+            doc.entries().find(|e| {
+                e.oz()
+                    .is_some_and(|entry_oz| entry_oz.dotted() == *oz || entry_oz.compact() == *oz)
+            }),
             format!("with Ordnungszahl {oz}"),
         )?,
         Selector::Id(id) => entry_range(
@@ -201,7 +208,7 @@ pub fn resolve(doc: &Document, selector: &Selector) -> Result<Range<usize>, Stri
     Ok(range)
 }
 
-/// One mark per category, item and markup item, in offset order.
+/// One mark per category, item, markup item and remark, in offset order.
 pub fn element_marks(doc: &Document) -> Vec<Mark> {
     let mut marks: Vec<Mark> = doc
         .entries()

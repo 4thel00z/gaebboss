@@ -77,6 +77,18 @@ class MarkupItem:
     long_text_markdown: str
     category_ozs: list[str]
 
+class Remark:
+    id: str
+    short_text: str
+    long_text: str
+    long_text_markdown: str
+    category_ozs: list[str]
+
+class AddText:
+    short_text: str
+    long_text: str
+    long_text_markdown: str
+
 class Finding:
     severity: str
     code: str
@@ -112,7 +124,9 @@ class Document:
     def categories(self) -> list[Category]: ...
     def markup_items(self) -> list[MarkupItem]: ...
 
-    def entries(self) -> list[Category | Item | MarkupItem]: ...
+    def entries(self) -> list[Category | Item | MarkupItem | Remark]: ...
+    def award_add_texts(self) -> list[AddText]: ...
+    def gaeb_add_texts(self) -> list[AddText]: ...
     def to_json(self) -> str: ...
     def validate(self, tender: Document | None = None) -> list[Finding]: ...
     def validate_against(self, tender: Document) -> list[Finding]: ...

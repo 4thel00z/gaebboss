@@ -97,7 +97,7 @@ enum Command {
         #[arg(long)]
         markdown: bool,
     },
-    /// Extract Markdown: category headings and item long texts.
+    /// Extract Markdown: category headings, item long texts, remarks and additional texts.
     Md {
         /// Path to the GAEB file.
         file: PathBuf,
