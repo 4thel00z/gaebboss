@@ -1,5 +1,12 @@
 # Changelog
 
+## [0.3.0](https://github.com/4thel00z/gaebboss/compare/v0.2.1...v0.3.0) (2026-11-05)
+
+
+### Features
+
+* **py:** add Document.entries() and texts on markup items ([#11](https://github.com/4thel00z/gaebboss/issues/11)) ([59a96b7](https://github.com/4thel00z/gaebboss/commit/59a96b72d734a1dea7bfc0384d7301b06ecaef05))
+
 ## [0.2.1](https://github.com/4thel00z/gaebboss/compare/v0.2.0...v0.2.1) (2026-11-03)
 
 
